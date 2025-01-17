@@ -1,10 +1,15 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using ScriptableObjects;
+using TMPro;
 using Unity.Burst;
 using Unity.Cinemachine;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace ECS {
@@ -13,6 +18,11 @@ namespace ECS {
 
         private GameObject inventoryUI;
         private TMP_Text[] textComponents;
+
+        public Sprite slotImage; // The image for each inventory slot
+        public int slotCount = 20; // Number of slots
+        public Vector2 slotSize = new Vector2(100, 100); // Size of each slot (Width, Height)
+        public float spacing = 10f; // Spacing between slots
 
         public bool isOpened = false;
 
@@ -42,42 +52,102 @@ namespace ECS {
                     inventoryUI.gameObject.SetActive(false);
                     isOpened = false;
                     UIController.Instance.ShowScreenSpaceCanvas();
+                    entityManager.RemoveComponent<InventoryOpen>(playerSingleton.PlayerEntity);
                 }
                 else {
                     inventoryUI.gameObject.SetActive(true);
                     isOpened = true;
                     SetupUI();
                     UIController.Instance.HideScreenSpaceCanvas();
+                    entityManager.AddComponent<InventoryOpen>(playerSingleton.PlayerEntity);
                 }
             }
         }
 
+
+        public void MoveAttachmentToInventory(Entity weaponEntity, Entity attachmentEntity, int inventorySlotIndex) {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            // Remove attachment from weapon
+            if (entityManager.HasComponent<Parent>(attachmentEntity)) {
+                ecb.RemoveComponent<Parent>(attachmentEntity);
+            }
+
+            // Update attachment item slot and mark it as not equipped
+            ecb.SetComponent(attachmentEntity, new Item {
+                slot = inventorySlotIndex,
+                isEquipped = false,
+                onGround = false
+            });
+
+            // Add attachment to player's inventory buffer
+            var playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity;
+            var inventory = entityManager.GetBuffer<Inventory>(playerEntity);
+            inventory.Add(new Inventory { itemEntity = attachmentEntity });
+
+            ecb.Playback(entityManager);
+            ecb.Dispose();
+        }
+
+        public void AddAttachmentToWeapon(Entity weaponEntity, Entity attachmentEntity, SlotType slotType) {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            // Link the attachment to the weapon
+            ecb.AddComponent(attachmentEntity, new Parent { Value = weaponEntity });
+            ecb.SetComponent(attachmentEntity, new LocalToWorld { Value = float4x4.identity });
+
+            // Mark the attachment as equipped
+            ecb.SetComponent(attachmentEntity, new Item {
+                slot = (int)slotType, // Set slot based on attachment type
+                isEquipped = true,
+                onGround = false
+            });
+
+            ecb.Playback(entityManager);
+            ecb.Dispose();
+        }
+
+        SlotType SelectAttachmentSlotType(AttachmentType attachmentType) {
+            switch (attachmentType) {
+                case AttachmentType.Barrel: return SlotType.Muzzle_Attachment;
+                case AttachmentType.Ammunition: return SlotType.Ammunition_Attachment;
+                case AttachmentType.Scope: return SlotType.Scope_Attachment;
+                case AttachmentType.Magazine: return SlotType.Magazine_Attachment;
+                default: return SlotType.Item;
+            }
+        }
+        
         public void SetupUI() {
+            UIController.Instance.ClearInventory();
+            
             PlayerSingleton playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
             CharacterStats characterStats = SystemAPI.GetComponent<CharacterStats>(playerSingleton.PlayerEntity);
-            var equippedGunBuffer = SystemAPI.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+            DynamicBuffer<Inventory> playerInventory = SystemAPI.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+            DynamicBuffer<EquippedGun> equippedGun = SystemAPI.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
 
-            //GameObject[] panels = GameObject.FindGameObjectsWithTag("UIPanel");
-            //foreach (GameObject panel in panels) {
-            //    Debug.Log(panel.name + "2");
-            //}
+            foreach (Inventory item in playerInventory) {
+                // Weapon and Attachment Render for Equipped Weapon
+                if (entityManager.HasComponent<GunTag>(item.itemEntity) && item.itemEntity == equippedGun[0].GunEntity) {
+                    var gunSprite = entityManager.GetComponentObject<SpriteRenderer>(item.itemEntity);
+                    var gunItem = entityManager.GetComponentData<Item>(item.itemEntity);
+                    UIController.Instance.RenderItem(gunItem.slot, gunSprite.sprite, SlotType.Weapon, "");
 
-            // Render Weapon on Inventory
-            GameObject uiPanelWeaponImage = GameObject.FindGameObjectWithTag("UIPanelWeapon");
-            if (uiPanelWeaponImage != null) {
-                var image = uiPanelWeaponImage.GetComponent<Image>();
-
-                if (!equippedGunBuffer.IsEmpty) {
-                    Entities.WithAll<GunTag>().ForEach((Entity entity, SpriteRenderer spriteRenderer) => {
-                        if (entity == equippedGunBuffer[0].GunEntity) {
-
-                            image.sprite = spriteRenderer.sprite;
+                    DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(item.itemEntity);
+                    foreach (Child attachment in attachments) {
+                        if (entityManager.HasComponent<AttachmentTag>(attachment.Value)) {
+                            var attachmentItem = entityManager.GetComponentData<Item>(attachment.Value);
+                            var attachmentSprite = entityManager.GetComponentObject<SpriteRenderer>(attachment.Value);
+                            var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachment.Value);
+                            UIController.Instance.RenderItem(attachmentItem.slot, attachmentSprite.sprite, SelectAttachmentSlotType(attachmentType.attachmentType), "");
                         }
-                    }).WithoutBurst().Run();
+                    }
+                    continue;
                 }
-                else {
-                    image.sprite = null;
-                }
+                
+                var itemData = entityManager.GetComponentData<Item>(item.itemEntity);
+                var itemSprite = entityManager.GetComponentObject<SpriteRenderer>(item.itemEntity);
+                Debug.Log("SLOT UPDATE NEW?"+ itemData.slot);
+                UIController.Instance.RenderItem(itemData.slot, itemSprite.sprite, SlotType.Item, "");
             }
 
             foreach (TMP_Text textComponent in textComponents) {
@@ -110,42 +180,6 @@ namespace ECS {
                         textComponent.text = characterStats.lifeSteal.ToString();
                         break;
                     }
-                }
-            }
-
-            GameObject stockImage = GameObject.FindGameObjectWithTag($"UIPanelAttachment1");
-            GameObject magazineImage = GameObject.FindGameObjectWithTag($"UIPanelAttachment2");
-            GameObject scopeImage = GameObject.FindGameObjectWithTag($"UIPanelAttachment3");
-            GameObject barrelImage = GameObject.FindGameObjectWithTag($"UIPanelAttachment4");
-            GameObject ammunitionImage = GameObject.FindGameObjectWithTag($"UIPanelAttachment5");
-            if (stockImage != null && magazineImage != null && scopeImage != null && barrelImage != null && ammunitionImage != null) {
-                var stockImageComponent = stockImage.GetComponent<Image>();
-                var magazineImageComponent = magazineImage.GetComponent<Image>();
-                var scopeImageComponent = scopeImage.GetComponent<Image>();
-                var barrelImageComponent = barrelImage.GetComponent<Image>();
-                var ammunitionImageComponent = ammunitionImage.GetComponent<Image>();
-
-                if (!equippedGunBuffer.IsEmpty) {
-                    Entities.WithAll<GunTag>().ForEach((Entity entity, SpriteRenderer spriteRenderer) => {
-                        if (entity == equippedGunBuffer[0].GunEntity) {
-                            var attachmentBuffers = entityManager.GetBuffer<GunAttachment>(entity);
-                            if (!attachmentBuffers.IsEmpty) {
-                                foreach(var attachmentEntity in attachmentBuffers)
-                                {
-                                    //switch (attachmentEntity.AttachmentEntity) {
-                                    //    
-                                    //}
-                                }
-                            }
-                        }
-                    }).WithoutBurst().Run();
-                }
-                else {
-                    stockImageComponent.sprite = null;
-                    magazineImageComponent.sprite = null;
-                    scopeImageComponent.sprite = null;
-                    barrelImageComponent.sprite = null;
-                    ammunitionImageComponent.sprite = null;
                 }
             }
         }

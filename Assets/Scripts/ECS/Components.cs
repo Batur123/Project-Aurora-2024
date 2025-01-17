@@ -147,9 +147,23 @@ namespace ECS {
         public bool needsUpdate;
     }
     
+    public struct InventoryOpen : IComponentData {}
+    
     public struct CollisionTimer : IComponentData
     {
         public float TimeElapsed; // Tracks how long the collision has lasted
+    }
+
+    public struct Item : IComponentData {
+        public int slot;
+        public bool isEquipped;
+        public int quantity;
+        public bool isStackable;
+        public bool onGround;
+    }
+    
+    public struct Inventory : IBufferElementData {
+        public Entity itemEntity;
     }
 
 }

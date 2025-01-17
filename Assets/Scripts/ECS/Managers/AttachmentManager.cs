@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace ECS {
     public struct AttachmentTag : IComponentData {}
-    
+
     public struct StockAttachmentComponent : IComponentData {
         public float recoilModifier;
         public float accuracyModifier;

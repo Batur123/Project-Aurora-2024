@@ -30,6 +30,10 @@ namespace ECS {
             if (equippedGunBuffer.IsEmpty) {
                 return;
             }
+            
+            if (state.EntityManager.HasComponent<InventoryOpen>(playerSingleton.PlayerEntity)) {
+                return;
+            }
 
             // Get the player and gun's local transforms
             var localTransform = SystemAPI.GetComponent<LocalTransform>(playerSingleton.PlayerEntity);
@@ -51,21 +55,6 @@ namespace ECS {
                 localTransform.Position.z
             );
             SystemAPI.SetComponent(gunEntity.GunEntity, gunEntityLocalTransform);
-            var attachmentBuffers = SystemAPI.GetBuffer<GunAttachment>(gunEntity.GunEntity);
-            foreach (var attachmentBuffer in attachmentBuffers) {
-                if (attachmentBuffer.AttachmentEntity == Entity.Null) {
-                    continue;
-                }
-
-                LocalTransform attachmentTransform = SystemAPI.GetComponent<LocalTransform>(attachmentBuffer.AttachmentEntity);
-                var scopePointTransform = SystemAPI.GetComponent<ScopePointTransform>(gunEntity.GunEntity);
-                attachmentTransform.Position = gunEntityLocalTransform.Position + scopePointTransform.offset;
-                attachmentTransform.Rotation = gunEntityLocalTransform.Rotation;
-                SystemAPI.SetComponent(attachmentBuffer.AttachmentEntity, attachmentTransform);
-                
-                var a = SystemAPI.GetComponent<LocalTransform>(attachmentBuffer.AttachmentEntity);
-                Debug.Log($"AFTER UPDATE: {a.Position}");
-            }
         }
     }
 }

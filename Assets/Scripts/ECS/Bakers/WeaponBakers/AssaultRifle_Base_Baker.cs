@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ECS.Bakers
@@ -81,11 +82,12 @@ namespace ECS.Bakers
             {
                 if (child.name == "MuzzlePoint")
                 {
+                    Debug.Log("Muzzlepoint init");
                     var muzzleTransform = child;
                     AddComponent(entity, new MuzzlePointTransform
                     {
                         position = muzzleTransform.transform.position,
-                        rotation = quaternion.Euler(muzzleTransform.localRotation.eulerAngles),
+                        rotation = quaternion.Euler(muzzleTransform.transform.eulerAngles),
                         scale = muzzleTransform.localScale,
                         offset = new float3(0,0,0)
                     });

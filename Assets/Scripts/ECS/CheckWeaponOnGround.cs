@@ -80,6 +80,13 @@ namespace ECS {
                         ecb.RemoveComponent<DroppedItemTag>(0, itemEntity);
                         var buffer = entityManager.GetBuffer<EquippedGun>(otherEntity);
                         buffer.Add(new EquippedGun { GunEntity = itemEntity });
+                        var itemData = entityManager.GetComponentData<Item>(itemEntity);
+                        itemData.isEquipped = true;
+                        itemData.slot = 0;
+                        itemData.onGround = false;
+                        var inventory = entityManager.GetBuffer<Inventory>(otherEntity);
+                        inventory.Add(new Inventory { itemEntity = itemEntity });
+                        entityManager.SetComponentData(itemEntity, itemData);
                         entityManager.SetComponentData(otherEntity, new UIUpdateFlag { needsUpdate = true });
                     }
                 }

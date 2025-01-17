@@ -6,11 +6,49 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace ECS {
     [BurstCompile]
-    [UpdateBefore(typeof(GunSpawnSystem))] // Should update before gun. Attachments has priority
+    [UpdateBefore(typeof(GunSpawnSystem))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))] // Choose the appropriate system group
+    public partial struct AttachmentRemovalSystem : ISystem {
+        public void OnUpdate(ref SystemState state) {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            foreach (var (request, requestEntity) in SystemAPI.Query<RefRO<RemoveAttachmentRequest>>().WithEntityAccess()) {
+                Entity attachmentEntity = request.ValueRO.attachmentEntity;
+
+                if (state.EntityManager.HasComponent<Parent>(attachmentEntity)) {
+                    ecb.RemoveComponent<Parent>(attachmentEntity);
+                }
+                ecb.DestroyEntity(requestEntity);
+            }
+
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+    }
+    
+    public static class GunAttachmentHelper {
+        public static void RequestRemoveAttachment(Entity gunEntity, Entity attachmentEntity) {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new RemoveAttachmentRequest {
+                gunEntity = gunEntity,
+                attachmentEntity = attachmentEntity
+            });
+            ecb.Playback(World.DefaultGameObjectInjectionWorld.EntityManager);
+            ecb.Dispose();
+        }
+    }
+
+    public struct RemoveAttachmentRequest : IComponentData {
+        public Entity gunEntity;
+        public Entity attachmentEntity;
+    }
+    
+    [BurstCompile]
+    [UpdateBefore(typeof(GunSpawnSystem))]
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct AttachmentLibrarySystem : ISystem {
         private NativeHashMap<int, Entity> _attachmentTypeToDescriptor;
@@ -29,6 +67,7 @@ namespace ECS {
             foreach (var (builtPrefab, attachmentType, entity) in
                      SystemAPI.Query<RefRO<BuiltPrefab>, RefRO<AttachmentTypeComponent>>()
                          .WithEntityAccess()) {
+
                 var attachmentTypeEnum = attachmentType.ValueRO.attachmentType;
                 int attachmentTypeKey = (int)attachmentTypeEnum;
                 if (!_attachmentTypeToDescriptor.ContainsKey(attachmentTypeKey)) {
@@ -137,6 +176,7 @@ namespace ECS {
                 var builtPrefab = state.EntityManager.GetComponentData<BuiltPrefab>(descriptorEntity);
                 var gunTypeComponent = state.EntityManager.GetComponentData<GunTypeComponent>(descriptorEntity);
                 var muzzlePointTransform = state.EntityManager.GetComponentData<MuzzlePointTransform>(descriptorEntity);
+                var scopePointTransform = state.EntityManager.GetComponentData<ScopePointTransform>(descriptorEntity);
                 var gunBlobRef = state.EntityManager.GetComponentData<GunBlobReference>(descriptorEntity);
                 GunTemplateBlob gunBlob = gunBlobRef.templateBlob.Value;
 
@@ -153,8 +193,9 @@ namespace ECS {
                 ecb.AddComponent<DamageComponent>(gunEntity);
                 ecb.AddComponent<ReloadTimeComponent>(gunEntity);
                 ecb.AddComponent<WeaponData>(gunEntity);
-                ecb.AddComponent<MuzzlePoint>(gunEntity);
+                ecb.AddComponent<MuzzlePointTransform>(gunEntity);
                 ecb.AddComponent<ScopePointTransform>(gunEntity);
+                ecb.AddComponent<Item>(gunEntity);
                 ecb.SetComponent(gunEntity, new GunTypeComponent { type = gunTypeComponent.type });
                 ecb.SetComponent(gunEntity, new AmmoComponent {
                     capacity = gunBlob.ammoCapacity,
@@ -171,8 +212,18 @@ namespace ECS {
                     lastAttackTime = gunBlob.lastAttackTime,
                     bulletsPerShot = gunBlob.bulletsPerShot
                 });
+                ecb.SetComponent(gunEntity, scopePointTransform);
+                ecb.SetComponent(gunEntity, muzzlePointTransform);
+                ecb.SetComponent(gunEntity, new Item {
+                    slot = -1,
+                    onGround = true,
+                    isEquipped = false,
+                    isStackable = false,
+                    quantity = 1
+                });
+                
                 ecb.AddBuffer<GunAttachment>(gunEntity);
-
+                
                 var position = request.ValueRO.position;
                 var rotation = quaternion.identity;
                 var scale = 1f;
@@ -191,16 +242,63 @@ namespace ECS {
                         accuracyModifier = 5,
                     });
                     
-                    var scopePointTransform = state.EntityManager.GetComponentData<ScopePointTransform>(descriptorEntity);
                     ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
                         scopePointTransform.position,
                         scopePointTransform.rotation,
                         1.0f
                     ));
 
+                    ecb.AddComponent(attachmentEntity, new AttachmentTag());
+                    ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
+                        attachmentType = AttachmentType.Scope
+                    });
                     ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
                     ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
+                    ecb.AddComponent<Item>(attachmentEntity);
+                    ecb.SetComponent(attachmentEntity, new Item {
+                        slot = 3,
+                        onGround = true,
+                        isEquipped = true,
+                        isStackable = false,
+                        quantity = 1
+                    });
                     //spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
+                    
+                    if (!state.EntityManager.HasComponent<Child>(gunEntity))
+                    {
+                        ecb.AddBuffer<Child>(gunEntity);
+                    }
+                }
+                
+                Entity baseBarrelEntity = attachmentLibrarySystemRef.GetDescriptor(AttachmentType.Barrel);
+                if (baseBarrelEntity != Entity.Null) {
+                    var barrelPrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseBarrelEntity);
+                    Entity attachmentEntity = ecb.Instantiate(barrelPrefab.prefab);
+                    ecb.SetName(attachmentEntity, AttachmentType.Barrel.ToString());
+                    ecb.AddComponent(attachmentEntity, new BarrelAttachmentComponent() {
+                        accuracyModifier = 5,
+                    });
+                    
+                    ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                        muzzlePointTransform.position,
+                        muzzlePointTransform.rotation,
+                        1.0f
+                    ));
+
+                    ecb.AddComponent(attachmentEntity, new AttachmentTag());
+                    ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
+                        attachmentType = AttachmentType.Barrel
+                    });
+                    ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
+                    ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
+                    ecb.AddComponent<Item>(attachmentEntity);
+                    ecb.SetComponent(attachmentEntity, new Item {
+                        slot = 1,
+                        onGround = false,
+                        isEquipped = true,
+                        isStackable = false,
+                        quantity = 1
+                    });
                     
                     if (!state.EntityManager.HasComponent<Child>(gunEntity))
                     {

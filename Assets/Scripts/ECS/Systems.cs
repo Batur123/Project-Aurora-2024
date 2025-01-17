@@ -7,7 +7,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -117,6 +116,8 @@ namespace ECS {
                     ecb.AddComponent<UIUpdateFlag>(playerEntity);
 
                     ecb.AddComponent<ReloadTimer>(playerEntity);
+                    
+                    ecb.AddBuffer<Inventory>(playerEntity);
 
                     Entity singletonEntity = ecb.CreateEntity();
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });
@@ -218,7 +219,7 @@ namespace ECS {
                 Linear = 0.9f,
                 Angular = 0.9f
             });
-            spawnerTime.nextSpawnTime = 2;
+            spawnerTime.nextSpawnTime = 2f;
         }
     }
 
@@ -227,7 +228,7 @@ namespace ECS {
         protected override void OnCreate() {
             RequireForUpdate<PlayerSingleton>();
             Entity waveManagerEntity = EntityManager.CreateEntity(ComponentType.ReadWrite<WaveManager>());
-            SystemAPI.SetSingleton(new WaveManager { currentWave = 1, isActive = false, waveTimer = 5f });
+            SystemAPI.SetSingleton(new WaveManager { currentWave = 1, isActive = false, waveTimer = 20f });
             EntityManager.SetName(waveManagerEntity, "WaveManagerEntity");
 
         }
@@ -429,7 +430,7 @@ namespace ECS {
             ecb.AddComponent(chunkIndex, projectileEntity, new LocalTransform {
                 Position = position,
                 Rotation = Quaternion.Euler(0, 0, Mathf.Atan2(shootDirection.y, shootDirection.x) * Mathf.Rad2Deg),
-                Scale = 0.4f,
+                Scale = 0.3f,
             });
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileComponent {
                 Speed = 5f,
@@ -515,6 +516,10 @@ namespace ECS {
                     return;
                 }
 
+                if (state.EntityManager.HasComponent<InventoryOpen>(playerEntity)) {
+                    return;
+                }
+
                 AmmoComponent ammoComponent = SystemAPI.GetComponent<AmmoComponent>(equippedGunBuffer[0].GunEntity);
                 bool isReloading = ammoComponent.isReloading;
 
@@ -542,14 +547,21 @@ namespace ECS {
 
                 shootDirection = ApplyRecoil(shootDirection, weaponData.recoilAmount);
 
-
-                EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
                 var muzzlePointTransform = state.EntityManager.GetComponentData<MuzzlePointTransform>(equippedGunBuffer[0].GunEntity);
+                var weaponLocalTransform = state.EntityManager.GetComponentData<LocalTransform>(equippedGunBuffer[0].GunEntity);
+
+                float3 gunWorldPosition = weaponLocalTransform.Position;
+                quaternion gunWorldRotation = weaponLocalTransform.Rotation;
+                float3 muzzleLocalPosition = muzzlePointTransform.position;
+                float3 transformedMuzzlePosition = math.mul(gunWorldRotation, muzzleLocalPosition);
+                float3 muzzleWorldPosition = gunWorldPosition + transformedMuzzlePosition;
+                
+                EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
                 for (int i = 0; i < weaponData.bulletsPerShot; i++) {
                     shootDirection = ApplySpread(shootDirection, weaponData.spreadAmount);
                     new ProcessProjectileSpawnerJob {
                         ecb = ecb,
-                        position = muzzlePointTransform.position,
+                        position = muzzleWorldPosition,
                         shootDirection = math.normalize(shootDirection),
                     }.ScheduleParallel();
                 }
