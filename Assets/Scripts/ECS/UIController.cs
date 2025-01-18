@@ -4,6 +4,7 @@ using System.Linq;
 using ECS;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
@@ -384,7 +385,7 @@ public class UIController : MonoBehaviour {
                slotType == SlotType.Magazine_Attachment ||
                slotType == SlotType.Ammunition_Attachment;
     }
-
+    
     private void DetachItemFromWeapon(Entity attachmentEntity) {
         Debug.Log($"Detaching attachment {attachmentEntity} from its parent weapon.");
         
@@ -409,7 +410,7 @@ public class UIController : MonoBehaviour {
     
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
         inventoryBuffer.Add(new Inventory { itemEntity = attachmentEntity });
-    
+ 
         Debug.Log($"Successfully detached and moved attachment {attachmentEntity} to inventory.");
     }
 
