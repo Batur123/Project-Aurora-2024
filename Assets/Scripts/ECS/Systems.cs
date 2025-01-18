@@ -123,11 +123,18 @@ namespace ECS {
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });
                     ecb.SetName(singletonEntity, "Player Singleton Entity");
                     
-                    var requestEntity = ecb.CreateEntity();
-                    ecb.AddComponent(requestEntity, new SpawnGunRequest
+                    var assaultRifleRequest = ecb.CreateEntity();
+                    ecb.AddComponent(assaultRifleRequest, new SpawnGunRequest
                     {
                         gunType = GunType.Rifle,
-                        position = new float3(2,2,0)
+                        position = new float3(1,1,0)
+                    });
+                    
+                    var shotgunRequest = ecb.CreateEntity();
+                    ecb.AddComponent(shotgunRequest, new SpawnGunRequest
+                    {
+                        gunType = GunType.Shotgun,
+                        position = new float3(-1,-1,0)
                     });
                     break;
                 }
@@ -378,6 +385,11 @@ namespace ECS {
         }
 
         public void OnUpdate(ref SystemState state) {
+            var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+            if (state.EntityManager.HasComponent<InventoryOpen>(playerSingleton.PlayerEntity)) {
+                return;
+            }
+            
             var input = Keyboard.current;
             float2 moveDirection = float2.zero;
 

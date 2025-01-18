@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ScriptableObjects;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -67,18 +68,27 @@ namespace ECS {
             var ammoLookup = SystemAPI.GetComponentLookup<AmmoComponent>(false);
             var itemLookup = SystemAPI.GetComponentLookup<Item>(false);
             var inventoryLookup = SystemAPI.GetBufferLookup<Inventory>(false);
+            var attachmentTypeLookup = SystemAPI.GetComponentLookup<AttachmentTypeComponent>(false);
+            var attachmentTagLookup = SystemAPI.GetComponentLookup<AttachmentTag>(false);
+            var childLookup = SystemAPI.GetBufferLookup<Child>(false);
 
             bufferLookup.Update(ref state);
             ammoLookup.Update(ref state);
             itemLookup.Update(ref state);
             inventoryLookup.Update(ref state);
-            
+            childLookup.Update(ref state);
+            attachmentTypeLookup.Update(ref state);
+            attachmentTagLookup.Update(ref state);
+
             state.Dependency = new ClearEquippedGunBufferJob {
                 PlayerEntity = playerSingleton.PlayerEntity,
                 BufferFromEntity = bufferLookup,
                 InventoryBuffers = inventoryLookup,
                 AmmoComponents = ammoLookup,
+                childLookup = childLookup,
                 ItemComponents = itemLookup,
+                AttachmentTypeLookup = attachmentTypeLookup,
+                AttachmentTagLookup = attachmentTagLookup,
                 ecb = GetEntityCommandBuffer(ref state)
             }.Schedule(state.Dependency);
         }
@@ -90,6 +100,16 @@ namespace ECS {
             return ecb.AsParallelWriter();
         }
 
+        public static int SelectSlotIndexOfAttachment(AttachmentType attachmentType) {
+            switch (attachmentType) {
+                case AttachmentType.Barrel: return 1;
+                case AttachmentType.Ammunition: return 4;
+                case AttachmentType.Scope: return 3;
+                case AttachmentType.Magazine: return 2;
+                default: return -1;
+            }
+        }
+        
         [BurstCompile]
         private struct ClearEquippedGunBufferJob : IJob {
             public Entity PlayerEntity;
@@ -97,6 +117,10 @@ namespace ECS {
             
             [NativeDisableParallelForRestriction] 
             public BufferLookup<EquippedGun> BufferFromEntity;
+            
+            [ReadOnly] public ComponentLookup<AttachmentTypeComponent> AttachmentTypeLookup;
+            [ReadOnly] public BufferLookup<Child> childLookup;
+            [ReadOnly] public ComponentLookup<AttachmentTag> AttachmentTagLookup;
             
             [NativeDisableParallelForRestriction] 
             public BufferLookup<Inventory> InventoryBuffers;
@@ -116,10 +140,12 @@ namespace ECS {
 
                 var buffer = BufferFromEntity[PlayerEntity];
 
-                AmmoComponent ammoComponent = AmmoComponents[buffer[0].GunEntity];
-                Item itemComponent = ItemComponents[buffer[0].GunEntity];
+                var gunBuffer = buffer[0].GunEntity;
                 
-                ecb.SetComponent(0, buffer[0].GunEntity, new Item {
+                AmmoComponent ammoComponent = AmmoComponents[gunBuffer];
+                Item itemComponent = ItemComponents[gunBuffer];
+                
+                ecb.SetComponent(0, gunBuffer, new Item {
                     onGround = true,
                     slot = -1,
                     isEquipped = false,
@@ -134,7 +160,7 @@ namespace ECS {
 
                     // Find the index of the equipped gun in the Inventory buffer
                     for (int i = 0; i < inventoryBuffer.Length; i++) {
-                        if (inventoryBuffer[i].itemEntity == buffer[0].GunEntity) {
+                        if (inventoryBuffer[i].itemEntity == gunBuffer) {
                             indexToRemove = i;
                             break;
                         }
@@ -147,12 +173,32 @@ namespace ECS {
                     }
                 }
                 
-                ecb.SetComponent(0, buffer[0].GunEntity, new AmmoComponent {
+                ecb.SetComponent(0, gunBuffer, new AmmoComponent {
                     currentAmmo = ammoComponent.currentAmmo,
                     capacity = ammoComponent.capacity,
                     isReloading = false,
                 });
                 
+                // disable attachments
+                if (childLookup.HasBuffer(gunBuffer)) {
+                    var attachments = childLookup[gunBuffer];
+                    for (int i = 0; i < attachments.Length; i++) {
+                        var attachmentEntity = attachments[i].Value;
+
+                        if (!ItemComponents.HasComponent(attachmentEntity) || !AttachmentTagLookup.HasComponent(attachmentEntity)) {
+                            continue;
+                        }
+
+                        ecb.SetComponent(0, attachmentEntity, new Item {
+                            isEquipped = false,
+                            slot = -1,
+                            onGround = false,
+                            quantity = 1,
+                            isStackable = false
+                        });
+                    }
+                }
+
                 buffer.Clear();
             }
         }

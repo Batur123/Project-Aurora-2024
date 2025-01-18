@@ -4682,7 +4682,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 5906765640409321740, guid: c8fbe590650c848478eca9782c91a68e, type: 3}
-  gunTemplate: {fileID: 0}
+  gunTemplate: {fileID: 11400000, guid: 64f0d237636cd00449b15dbca1d06754, type: 2}
 --- !u!4 &1399164094
 Transform:
   m_ObjectHideFlags: 0

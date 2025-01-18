@@ -2,7 +2,7 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     private Canvas inventoryCanvas;
     private RectTransform rectTransform;
@@ -108,6 +108,23 @@ public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             rectTransform.SetParent(currentSlot.transform, false);
             rectTransform.anchoredPosition = Vector2.zero;
+        }
+    }
+    
+    // Drop Item from Inventory to Ground
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (currentSlot == null)
+        {
+            return;
+        }
+        
+        // Check for right-click
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+           Debug.Log("RIGHT CLICKED!");
+           Debug.Log(currentSlot.SlotIndex);
+           UIController.Instance.DropItemAtIndexToGround(currentSlot.SlotIndex);
         }
     }
 }

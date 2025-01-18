@@ -1,7 +1,9 @@
 ﻿using System;
+using ScriptableObjects;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
+using Unity.Transforms;
 using UnityEngine.InputSystem;
 
 namespace ECS {
@@ -9,26 +11,42 @@ namespace ECS {
     public partial struct CheckWeaponOnGroundTriggerSystem : ISystem {
         private ComponentLookup<PhysicsCollider> colliderLookup;
         private ComponentLookup<PlayerData> playerDataLookup;
-
+        private ComponentLookup<Item> itemLookup;
+        private ComponentLookup<AttachmentTypeComponent> attachmentTypeLookup;
+        private BufferLookup<Child> childLookup;
+        private ComponentLookup<AttachmentTag> attachmentTagLookup;
+        
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<SimulationSingleton>();
             state.RequireForUpdate<PlayerSingleton>();
             colliderLookup = state.GetComponentLookup<PhysicsCollider>(isReadOnly: true);
             playerDataLookup = state.GetComponentLookup<PlayerData>(isReadOnly: false);
+            itemLookup = state.GetComponentLookup<Item>(isReadOnly: false);
+            attachmentTypeLookup = state.GetComponentLookup<AttachmentTypeComponent>(isReadOnly: true);
+            childLookup = state.GetBufferLookup<Child>(isReadOnly: true);
+            attachmentTagLookup = state.GetComponentLookup<AttachmentTag>(isReadOnly: true);
         }
 
         public void OnUpdate(ref SystemState state) {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
+           
             colliderLookup.Update(ref state);
             playerDataLookup.Update(ref state);
+            itemLookup.Update(ref state);
+            attachmentTypeLookup.Update(ref state);
+            childLookup.Update(ref state);
+            attachmentTagLookup.Update(ref state);
 
             state.Dependency = new CheckTriggerEvents {
                 colliderLookup = colliderLookup,
                 playerDataLookup = playerDataLookup,
+                itemLookup = itemLookup,
+                attachmentTagLookup = attachmentTagLookup,
+                attachmentTypeLookup = attachmentTypeLookup,
+                childLookup = childLookup,
                 entityManager = state.EntityManager,
                 playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity,
                 ecb = ecb.AsParallelWriter(),
-                deltaTime = SystemAPI.Time.DeltaTime
             }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
             state.Dependency.Complete();
             ecb.Playback(state.EntityManager);
@@ -47,14 +65,27 @@ namespace ECS {
             return CollisionBelongsToLayer.None;
         }
 
-
+        public static int SelectSlotIndexOfAttachment(AttachmentType attachmentType) {
+            switch (attachmentType) {
+                case AttachmentType.Barrel: return 1;
+                case AttachmentType.Ammunition: return 4;
+                case AttachmentType.Scope: return 3;
+                case AttachmentType.Magazine: return 2;
+                default: return -1;
+            }
+        }
+        
         struct CheckTriggerEvents : ITriggerEventsJob {
             [ReadOnly] public ComponentLookup<PhysicsCollider> colliderLookup;
-            public ComponentLookup<PlayerData> playerDataLookup;
+            [ReadOnly] public ComponentLookup<PlayerData> playerDataLookup;
+            [ReadOnly] public ComponentLookup<Item> itemLookup;
+            [ReadOnly] public ComponentLookup<AttachmentTypeComponent> attachmentTypeLookup;
+            [ReadOnly] public BufferLookup<Child> childLookup;
+            [ReadOnly] public ComponentLookup<AttachmentTag> attachmentTagLookup;
+            
             public Entity playerEntity;
             public EntityManager entityManager;
             public EntityCommandBuffer.ParallelWriter ecb;
-            public float deltaTime;
 
             public void Execute(TriggerEvent triggerEvent) {
                 var (itemEntity, otherEntity) = GetEntityWithComponent<DroppedItemTag>(triggerEvent.EntityA, triggerEvent.EntityB);
@@ -78,15 +109,41 @@ namespace ECS {
                     var input = Keyboard.current;
                     if (input.fKey.isPressed) {
                         ecb.RemoveComponent<DroppedItemTag>(0, itemEntity);
-                        var buffer = entityManager.GetBuffer<EquippedGun>(otherEntity);
-                        buffer.Add(new EquippedGun { GunEntity = itemEntity });
-                        var itemData = entityManager.GetComponentData<Item>(itemEntity);
-                        itemData.isEquipped = true;
-                        itemData.slot = 0;
-                        itemData.onGround = false;
-                        var inventory = entityManager.GetBuffer<Inventory>(otherEntity);
-                        inventory.Add(new Inventory { itemEntity = itemEntity });
-                        entityManager.SetComponentData(itemEntity, itemData);
+
+                        ecb.AppendToBuffer(0, playerEntity, new EquippedGun { GunEntity = itemEntity });
+
+                        ecb.SetComponent(0, itemEntity, new Item {
+                            isEquipped = true,
+                            slot = 0,
+                            onGround = false,
+                            quantity = 1,
+                            isStackable = false
+                        });
+
+                        ecb.AppendToBuffer(0, otherEntity, new Inventory { itemEntity = itemEntity });
+
+                        if (childLookup.HasBuffer(itemEntity)) {
+                            var attachments = childLookup[itemEntity];
+                            for (int i = 0; i < attachments.Length; i++) {
+                                var attachmentEntity = attachments[i].Value;
+
+                                if (!itemLookup.HasComponent(attachmentEntity) || !attachmentTagLookup.HasComponent(attachmentEntity)) {
+                                    continue;
+                                }
+
+                                var attachmentType = attachmentTypeLookup[attachmentEntity].attachmentType;
+                                var slotIndex = SelectSlotIndexOfAttachment(attachmentType);
+
+                                ecb.SetComponent(0, attachmentEntity, new Item {
+                                    isEquipped = true,
+                                    slot = slotIndex,
+                                    onGround = false,
+                                    quantity = 1,
+                                    isStackable = false
+                                });
+                            }
+                        }
+
                         entityManager.SetComponentData(otherEntity, new UIUpdateFlag { needsUpdate = true });
                     }
                 }

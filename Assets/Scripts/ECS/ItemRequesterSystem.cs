@@ -256,9 +256,9 @@ namespace ECS {
                     ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
                     ecb.AddComponent<Item>(attachmentEntity);
                     ecb.SetComponent(attachmentEntity, new Item {
-                        slot = 3,
+                        slot = -1,
                         onGround = true,
-                        isEquipped = true,
+                        isEquipped = false,
                         isStackable = false,
                         quantity = 1
                     });
@@ -293,9 +293,9 @@ namespace ECS {
                     ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
                     ecb.AddComponent<Item>(attachmentEntity);
                     ecb.SetComponent(attachmentEntity, new Item {
-                        slot = 1,
-                        onGround = false,
-                        isEquipped = true,
+                        slot = -1,
+                        onGround = true,
+                        isEquipped = false,
                         isStackable = false,
                         quantity = 1
                     });
