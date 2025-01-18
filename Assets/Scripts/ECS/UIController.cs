@@ -410,7 +410,10 @@ public class UIController : MonoBehaviour {
     
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
         inventoryBuffer.Add(new Inventory { itemEntity = attachmentEntity });
- 
+
+        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
+        attachmentSpriteRenderer.enabled = false;
+        
         Debug.Log($"Successfully detached and moved attachment {attachmentEntity} to inventory.");
     }
 
@@ -435,6 +438,9 @@ public class UIController : MonoBehaviour {
             commandBuffer.Playback(entityManager);
         }
     
+        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
+        attachmentSpriteRenderer.enabled = true;
+        
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
         int indexToRemove = -1;

@@ -3,8 +3,6 @@ using ScriptableObjects;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ECS.Bakers
