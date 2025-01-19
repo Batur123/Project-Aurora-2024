@@ -263,7 +263,7 @@ public class UIController : MonoBehaviour {
             foreach (GameObject slot in slots) {
                 InventorySlot inventorySlot = slot.AddComponent<InventorySlot>();
                 SlotType slotType = SelectSlotType(slotTag);
-                inventorySlot.Initialize(i, SelectSlotType(slotTag));
+                inventorySlot.Initialize(i, SelectSlotType(slotTag), SlotType.None);
                 _inventorySlots.Add(i, new InventorySlotData(slot, slotType));
                 i++;
             }
@@ -552,6 +552,10 @@ public class UIController : MonoBehaviour {
         if (IsAttachmentSlot(slotType1) && !IsAttachmentSlot(slotType2)) {
             AttachItemToWeapon(entity2, slotType1);
         }
+
+        if (slotType1 == SlotType.Item && IsWeaponSlot(slotType2)) {
+            Debug.Log("From inventory to weapon moving happened");
+        }
     }
     
     private bool IsAttachmentSlot(SlotType slotType) {
@@ -559,6 +563,10 @@ public class UIController : MonoBehaviour {
                slotType == SlotType.Scope_Attachment ||
                slotType == SlotType.Magazine_Attachment ||
                slotType == SlotType.Ammunition_Attachment;
+    }
+
+    private bool IsWeaponSlot(SlotType slotType) {
+        return slotType == SlotType.Weapon;
     }
     
     private void DetachItemFromWeapon(Entity attachmentEntity) {

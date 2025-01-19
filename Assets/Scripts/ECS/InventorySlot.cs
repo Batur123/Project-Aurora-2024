@@ -11,12 +11,14 @@ public enum SlotType
     Magazine_Attachment,
     Ammunition_Attachment,
     Weapon,
+    Material,
 }
 
 public class InventorySlot : MonoBehaviour
 {
     [SerializeField] public int SlotIndex;
     [SerializeField] public SlotType SlotType { get; private set; }
+    [SerializeField] public SlotType CurrentItemType;
 
     public InventoryItem CurrentItem { get; private set; }
 
@@ -27,10 +29,12 @@ public class InventorySlot : MonoBehaviour
         uiController = UIController.Instance;
     }
 
-    public void Initialize(int index, SlotType slotType)
+    public void Initialize(int index, SlotType slotType, SlotType currentItemType)
     {
         SlotIndex = index;
         SlotType = slotType;
+        CurrentItemType = currentItemType;
+
     }
 
     public void AssignItem(InventoryItem item)
