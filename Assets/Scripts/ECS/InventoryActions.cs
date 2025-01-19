@@ -13,6 +13,29 @@ using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace ECS {
+    public static class InventoryHelper {
+        public static int FindFirstEmptyInventorySlot(DynamicBuffer<Inventory> inventory, ComponentLookup<Item> itemLookup) {
+            HashSet<int> occupiedSlots = new HashSet<int>();
+
+            foreach (var inventoryItem in inventory) {
+                if (itemLookup.HasComponent(inventoryItem.itemEntity)) {
+                    Item itemData = itemLookup[inventoryItem.itemEntity];
+                    if (itemData.slot >= 5 && itemData.slot <= 23) {
+                        occupiedSlots.Add(itemData.slot);
+                    }
+                }
+            }
+
+            for (int slot = 5; slot <= 23; slot++) {
+                if (!occupiedSlots.Contains(slot)) {
+                    return slot;
+                }
+            }
+
+            return -1;
+        }
+    }
+    
     public partial class InventoryUIActions : SystemBase {
         public EntityManager entityManager;
 
@@ -127,7 +150,11 @@ namespace ECS {
 
             foreach (Inventory item in playerInventory) {
                 // Weapon and Attachment Render for Equipped Weapon
-                if (entityManager.HasComponent<GunTag>(item.itemEntity) && item.itemEntity == equippedGun[0].GunEntity) {
+                if (
+                    entityManager.HasComponent<GunTag>(item.itemEntity) 
+                    && entityManager.HasBuffer<EquippedGun>(playerSingleton.PlayerEntity) 
+                    && !equippedGun.IsEmpty
+                    && item.itemEntity == equippedGun[0].GunEntity) {
                     var gunSprite = entityManager.GetComponentObject<SpriteRenderer>(item.itemEntity);
                     var gunItem = entityManager.GetComponentData<Item>(item.itemEntity);
                     UIController.Instance.RenderItem(gunItem.slot, gunSprite.sprite, SlotType.Weapon, "");

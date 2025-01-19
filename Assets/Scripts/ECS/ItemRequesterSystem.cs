@@ -8,27 +8,6 @@ using Unity.Transforms;
 using UnityEngine;
 
 namespace ECS {
-    [BurstCompile]
-    [UpdateBefore(typeof(GunSpawnSystem))]
-    [UpdateInGroup(typeof(SimulationSystemGroup))] // Choose the appropriate system group
-    public partial struct AttachmentRemovalSystem : ISystem {
-        public void OnUpdate(ref SystemState state) {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-
-            foreach (var (request, requestEntity) in SystemAPI.Query<RefRO<RemoveAttachmentRequest>>().WithEntityAccess()) {
-                Entity attachmentEntity = request.ValueRO.attachmentEntity;
-
-                if (state.EntityManager.HasComponent<Parent>(attachmentEntity)) {
-                    ecb.RemoveComponent<Parent>(attachmentEntity);
-                }
-                ecb.DestroyEntity(requestEntity);
-            }
-
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
-        }
-    }
-    
     public static class GunAttachmentHelper {
         public static void RequestRemoveAttachment(Entity gunEntity, Entity attachmentEntity) {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -42,6 +21,40 @@ namespace ECS {
         }
     }
 
+    [BurstCompile]
+    [UpdateBefore(typeof(GunSpawnSystem))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))] // Choose the appropriate system group
+    public partial struct AttachmentRemovalSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<PlayerSingleton>();
+        }
+        
+        public void OnUpdate(ref SystemState state) {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            foreach (var (request, requestEntity) in SystemAPI.Query<RefRO<RemoveAttachmentRequest>>().WithEntityAccess()) {
+                Entity attachmentEntity = request.ValueRO.attachmentEntity;
+
+                if (state.EntityManager.HasComponent<Parent>(attachmentEntity)) {
+                    ecb.RemoveComponent<Parent>(attachmentEntity);
+                }
+
+                Item itemData = state.EntityManager.GetComponentData<Item>(attachmentEntity);
+                itemData.slot = -1;
+                itemData.isEquipped = false;
+                itemData.onGround = true;
+                ecb.SetComponent(attachmentEntity, itemData);
+                var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+                ecb.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+                
+                ecb.DestroyEntity(requestEntity);
+            }
+
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+    }
+    
     public struct RemoveAttachmentRequest : IComponentData {
         public Entity gunEntity;
         public Entity attachmentEntity;

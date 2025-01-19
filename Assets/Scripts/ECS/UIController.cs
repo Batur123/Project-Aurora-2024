@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ECS;
+using ECS.Bakers;
+using ScriptableObjects;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour {
@@ -269,7 +272,7 @@ public class UIController : MonoBehaviour {
 
     public void SwapItems(int index1, int index2) {
         Debug.Log($"Attempting to swap items in Slot {index1} and Slot {index2}");
-
+        
         if (_inventorySlots.TryGetValue(index1, out var slotObj1) &&
             _inventorySlots.TryGetValue(index2, out var slotObj2)) {
 
@@ -333,6 +336,23 @@ public class UIController : MonoBehaviour {
         }
     }
 
+    public Entity FindItemAtIndexFromWeapon(Entity weaponEntity, int slotIndex) {
+        Entity item = Entity.Null;
+        
+        DynamicBuffer<Child> attachmentsBuffer = entityManager.GetBuffer<Child>(weaponEntity);
+        foreach (Child attachment in attachmentsBuffer) {
+            if (entityManager.HasComponent<Item>(attachment.Value)) {
+                Item itemComponent = entityManager.GetComponentData<Item>(attachment.Value);
+                if (itemComponent.slot == slotIndex) {
+                    item = attachment.Value;
+                    break;
+                }
+            }
+        }
+
+        return item;
+    }
+    
     public Entity FindItemAtIndex(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
@@ -350,73 +370,139 @@ public class UIController : MonoBehaviour {
 
         return item;
     }
-    
-    public void DropItemAtIndexToGround(int slotIndex) {
 
+    public void DropItemAtIndexToGround(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
         LocalTransform playerTransform = entityManager.GetComponentData<LocalTransform>(playerSingleton.PlayerEntity);
         DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
 
-        /*
-         * 0 Weapon 1-2-3-4 Attachment, Rest Item
-         */
-        if (slotIndex == 0) {
-            if (equippedGuns.IsEmpty) {
-                Debug.LogWarning("Serious issue, weapon should not be empty while dropping index 0 from inventory");
-                return;
-            }
+        using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
+            switch (slotIndex) {
+                case 0: {
+                    if (equippedGuns.IsEmpty) {
+                        Debug.LogWarning("Serious issue, weapon should not be empty while dropping index 0 from inventory");
+                        break;
+                    }
 
-            Entity foundWeapon = FindItemAtIndex(slotIndex);
-            if (foundWeapon == Entity.Null) {
-                Debug.LogWarning("Serious issue that weapon does not found even though we had equippedGun buffer not empty");
-                return;
-            }
+                    Entity foundWeapon = FindItemAtIndex(slotIndex);
+                    if (foundWeapon == Entity.Null) {
+                        Debug.LogWarning("Serious issue that weapon does not found even though we had equippedGun buffer not empty");
+                        break;
+                    }
 
-            // First item changes
-            Item weaponItemComponent = entityManager.GetComponentData<Item>(foundWeapon);
-            weaponItemComponent.slot = -1;
-            weaponItemComponent.isEquipped = false;
-            weaponItemComponent.onGround = true;
-            entityManager.SetComponentData(foundWeapon, weaponItemComponent);
-            
-            // We dont drop attachments individually just update their items
-            DynamicBuffer<Child> attachmentBuffers = entityManager.GetBuffer<Child>(foundWeapon);
-            foreach (Child attachmentBuffer in attachmentBuffers) {
-                if (!entityManager.HasComponent<Item>(attachmentBuffer.Value) || !entityManager.HasComponent<AttachmentTag>(attachmentBuffer.Value)) {
-                    continue;
+                    Item weaponItemComponent = entityManager.GetComponentData<Item>(foundWeapon);
+                    weaponItemComponent.slot = -1;
+                    weaponItemComponent.isEquipped = false;
+                    weaponItemComponent.onGround = true;
+                    commandBuffer.SetComponent(foundWeapon, weaponItemComponent);
+
+                    DynamicBuffer<Child> attachmentBuffers = entityManager.GetBuffer<Child>(foundWeapon);
+                    foreach (Child attachmentBuffer in attachmentBuffers) {
+                        if (!entityManager.HasComponent<Item>(attachmentBuffer.Value) || !entityManager.HasComponent<AttachmentTag>(attachmentBuffer.Value)) {
+                            continue;
+                        }
+
+                        Item attachmentItem = entityManager.GetComponentData<Item>(attachmentBuffer.Value);
+                        attachmentItem.slot = -1;
+                        attachmentItem.isEquipped = false;
+                        attachmentItem.onGround = true;
+                        commandBuffer.SetComponent(attachmentBuffer.Value, attachmentItem);
+                    }
+
+                    DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+
+                    int indexToRemove = -1;
+
+                    for (int i = 0; i < inventoryBuffer.Length; i++) {
+                        if (inventoryBuffer[i].itemEntity == foundWeapon) {
+                            indexToRemove = i;
+                            break;
+                        }
+                    }
+
+                    if (indexToRemove != -1) {
+                        inventoryBuffer.RemoveAt(indexToRemove);
+                    }
+                    commandBuffer.RemoveComponent<EquippedGun>(playerSingleton.PlayerEntity);
+                    commandBuffer.AddBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+                    commandBuffer.AddComponent<DroppedItemTag>(equippedGuns[0].GunEntity);
+                    commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+                    break;
                 }
-                
-                Item attachmentItem = entityManager.GetComponentData<Item>(attachmentBuffer.Value);
-                attachmentItem.slot = -1;
-                attachmentItem.isEquipped = false;
-                attachmentItem.onGround = true;
-                entityManager.SetComponentData(attachmentBuffer.Value, attachmentItem);
-            }
-            
-            // Remove from inventory
-            DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+                case 1:
+                case 2:
+                case 3:
+                case 4: {
+                    if (equippedGuns.IsEmpty) {
+                        Debug.LogWarning("Serious issue, weapon should not be empty while dropping index 1-2-3-4 from inventory");
+                        break;
+                    }
 
-            int indexToRemove = -1;
+                    Entity foundAttachment = FindItemAtIndexFromWeapon(equippedGuns[0].GunEntity, slotIndex);
+                    if (foundAttachment == Entity.Null) {
+                        Debug.LogWarning("Attachment from item at index does not found");
+                        break;
+                    }
+                    GunAttachmentHelper.RequestRemoveAttachment(equippedGuns[0].GunEntity, foundAttachment);
+                    
+                    commandBuffer.AddComponent<DroppedItemTag>(foundAttachment);
+                    commandBuffer.SetComponent(foundAttachment, new LocalTransform {
+                        Position = playerTransform.Position,
+                        Rotation = Quaternion.identity,
+                        Scale = 1f
+                    });
+                    commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+                    break;
+                }
+                default: {
+                    Entity itemAtIndex = FindItemAtIndex(slotIndex);
+                    if (itemAtIndex == Entity.Null) {
+                        Debug.LogWarning("Dropping item from inventory could not found at index " + slotIndex);
+                        break;
+                    }
 
-            for (int i = 0; i < inventoryBuffer.Length; i++) {
-                if (inventoryBuffer[i].itemEntity == foundWeapon) {
-                    indexToRemove = i;
+                    if (!entityManager.HasComponent<Item>(itemAtIndex)) {
+                        Debug.LogWarning("Dropping item does not have Item component" + slotIndex);
+                        break;
+                    }
+
+                    Item itemData = entityManager.GetComponentData<Item>(itemAtIndex);
+                    itemData.slot = -1;
+                    itemData.onGround = true;
+                    itemData.isEquipped = false;
+                    commandBuffer.SetComponent(itemAtIndex, itemData);
+
+                    SpriteRenderer spriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(itemAtIndex);
+                    spriteRenderer.enabled = true;
+
+                    commandBuffer.SetComponent(itemAtIndex, new LocalTransform {
+                        Position = playerTransform.Position,
+                        Rotation = Quaternion.identity,
+                        Scale = 1f
+                    });
+                    commandBuffer.AddComponent<DroppedItemTag>(itemAtIndex);
+                    commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+                    
+                    DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+
+                    int indexToRemove = -1;
+
+                    for (int i = 0; i < inventoryBuffer.Length; i++) {
+                        if (inventoryBuffer[i].itemEntity == itemAtIndex) {
+                            indexToRemove = i;
+                            break;
+                        }
+                    }
+
+                    if (indexToRemove != -1) {
+                        inventoryBuffer.RemoveAt(indexToRemove);
+                    }
                     break;
                 }
             }
-
-            if (indexToRemove != -1) {
-                inventoryBuffer.RemoveAt(indexToRemove);
-            }
             
-            //Remove from equipped gun buffer
-            using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
-                commandBuffer.AddComponent<DroppedItemTag>(equippedGuns[0].GunEntity);
-                equippedGuns.Clear();
-                commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
-                commandBuffer.Playback(entityManager);
-            }
+            commandBuffer.Playback(entityManager);
         }
     }
 
@@ -477,10 +563,6 @@ public class UIController : MonoBehaviour {
     
     private void DetachItemFromWeapon(Entity attachmentEntity) {
         Debug.Log($"Detaching attachment {attachmentEntity} from its parent weapon.");
-        if (entityManager.HasComponent<Parent>(attachmentEntity)) {
-            var parent = entityManager.GetComponentData<Parent>(attachmentEntity);
-            Debug.Log("Parent was "+ parent.Value);
-        }
         
         if (attachmentEntity == Entity.Null) {
             Debug.Log("Attachment Entity was null. No need to detach!");
@@ -520,7 +602,10 @@ public class UIController : MonoBehaviour {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
         DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
-
+        var muzzlePointTransform = entityManager.GetComponentData<MuzzlePointTransform>(equippedGuns[0].GunEntity);
+        var scopePointTransform = entityManager.GetComponentData<ScopePointTransform>(equippedGuns[0].GunEntity);
+        var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachmentEntity);
+        
         if (equippedGuns.IsEmpty) {
             Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
             return;
@@ -528,6 +613,27 @@ public class UIController : MonoBehaviour {
 
         using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
             commandBuffer.AddComponent(attachmentEntity, new Parent { Value = equippedGuns[0].GunEntity });
+            
+            // set offsets of a weapon
+            switch (attachmentType.attachmentType) {
+                case AttachmentType.Scope: {
+                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                        scopePointTransform.position,
+                        scopePointTransform.rotation,
+                        1.0f
+                    ));
+                    break;
+                }
+                case AttachmentType.Barrel: {
+                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                        muzzlePointTransform.position,
+                        muzzlePointTransform.rotation,
+                        1.0f
+                    ));
+                    break;
+                }
+            }
+            
             commandBuffer.Playback(entityManager);
         }
     
