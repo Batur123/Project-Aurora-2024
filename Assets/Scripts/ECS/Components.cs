@@ -165,5 +165,4 @@ namespace ECS {
     public struct Inventory : IBufferElementData {
         public Entity itemEntity;
     }
-
 }

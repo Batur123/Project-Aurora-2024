@@ -1,0 +1,1105 @@
+fileFormatVersion: 2
+guid: e13d39c4935f1e141b3b88c53812eee6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6922488308559095316
+    second: Character-and-Zombie_0
+  - first:
+      213: 9036478088626311669
+    second: Character-and-Zombie_1
+  - first:
+      213: -1547111209010451619
+    second: Character-and-Zombie_2
+  - first:
+      213: 4993437432923136895
+    second: Character-and-Zombie_3
+  - first:
+      213: 1771417928115877239
+    second: Character-and-Zombie_4
+  - first:
+      213: 9087043168588977377
+    second: Character-and-Zombie_5
+  - first:
+      213: 4263614908200633684
+    second: Character-and-Zombie_6
+  - first:
+      213: -3368227943496410742
+    second: Character-and-Zombie_7
+  - first:
+      213: 6751450855985079194
+    second: Character-and-Zombie_8
+  - first:
+      213: 5698467264175617184
+    second: Character-and-Zombie_9
+  - first:
+      213: -622995676284333385
+    second: Character-and-Zombie_10
+  - first:
+      213: 6329521926000744539
+    second: Character-and-Zombie_11
+  - first:
+      213: 4414604163642162245
+    second: Character-and-Zombie_12
+  - first:
+      213: 1219067998086479940
+    second: Character-and-Zombie_13
+  - first:
+      213: 7742201930735839921
+    second: Character-and-Zombie_14
+  - first:
+      213: 5075046419819842073
+    second: Character-and-Zombie_15
+  - first:
+      213: -9170724298823919241
+    second: Character-and-Zombie_16
+  - first:
+      213: -6340033454394207751
+    second: Character-and-Zombie_17
+  - first:
+      213: -6645234540853169308
+    second: Character-and-Zombie_18
+  - first:
+      213: 6685893693745398729
+    second: Character-and-Zombie_19
+  - first:
+      213: 4221923655265133786
+    second: Character-and-Zombie_20
+  - first:
+      213: 5655382064955955474
+    second: Character-and-Zombie_21
+  - first:
+      213: 4897504250756771961
+    second: Character-and-Zombie_22
+  - first:
+      213: -4648842602735375959
+    second: Character-and-Zombie_23
+  - first:
+      213: 2166697129468283605
+    second: Character-and-Zombie_24
+  - first:
+      213: 3043505362357295715
+    second: Character-and-Zombie_25
+  - first:
+      213: 2847662778905644256
+    second: Character-and-Zombie_26
+  - first:
+      213: -4659251062720398198
+    second: Character-and-Zombie_27
+  - first:
+      213: -7834144060450412753
+    second: Character-and-Zombie_28
+  - first:
+      213: -8477949578531499183
+    second: Character-and-Zombie_29
+  - first:
+      213: 399360026367234514
+    second: Character-and-Zombie_30
+  - first:
+      213: -3989713035897506090
+    second: Character-and-Zombie_31
+  - first:
+      213: -7490953925407543541
+    second: Character-and-Zombie_32
+  - first:
+      213: -6084732921009236461
+    second: Character-and-Zombie_33
+  - first:
+      213: -7688543192312732697
+    second: Character-and-Zombie_34
+  - first:
+      213: 5630826333450466230
+    second: Character-and-Zombie_35
+  - first:
+      213: 7223705046446665406
+    second: Character-and-Zombie_36
+  - first:
+      213: -7285345107849812548
+    second: Character-and-Zombie_37
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Character-and-Zombie_0
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 123
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 416a571907e911060800000000000000
+      internalID: 6922488308559095316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_1
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 123
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f11c2db1f4086d70800000000000000
+      internalID: 9036478088626311669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_2
+      rect:
+        serializedVersion: 2
+        x: 110
+        y: 123
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5b28e66d8e878ae0800000000000000
+      internalID: -1547111209010451619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_3
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 123
+        width: 19
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f73a58d83e04c4540800000000000000
+      internalID: 4993437432923136895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_4
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 123
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 775fa126837559810800000000000000
+      internalID: 1771417928115877239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_5
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 123
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e4d26add99ab1e70800000000000000
+      internalID: 9087043168588977377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_6
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 93
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 455cb5e5b276b2b30800000000000000
+      internalID: 4263614908200633684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_7
+      rect:
+        serializedVersion: 2
+        x: 60
+        y: 93
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a891a51f786a141d0800000000000000
+      internalID: -3368227943496410742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_8
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 93
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a936f7568c8f1bd50800000000000000
+      internalID: 6751450855985079194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_9
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 93
+        width: 20
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a43165f8c5051f40800000000000000
+      internalID: 5698467264175617184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_10
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b2d772bbbcaa57f0800000000000000
+      internalID: -622995676284333385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_11
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b58125d08aaf6d750800000000000000
+      internalID: 6329521926000744539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_12
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54cf9d5e813d34d30800000000000000
+      internalID: 4414604163642162245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_13
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 440cdf6a2effae010800000000000000
+      internalID: 1219067998086479940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_14
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ba6ad4d2a3d17b60800000000000000
+      internalID: 7742201930735839921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_15
+      rect:
+        serializedVersion: 2
+        x: 446
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91acaff74df2e6640800000000000000
+      internalID: 5075046419819842073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_16
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7799e8bb6da0bb080800000000000000
+      internalID: -9170724298823919241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_17
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f19db60a2da308a0800000000000000
+      internalID: -6340033454394207751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_18
+      rect:
+        serializedVersion: 2
+        x: 590
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4637a4f946267c3a0800000000000000
+      internalID: -6645234540853169308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_19
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 93
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c308bd14e019cc50800000000000000
+      internalID: 6685893693745398729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_20
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 63
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad4a5ec1239479a30800000000000000
+      internalID: 4221923655265133786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_21
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 63
+        width: 18
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21990da4604fb7e40800000000000000
+      internalID: 5655382064955955474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_22
+      rect:
+        serializedVersion: 2
+        x: 110
+        y: 63
+        width: 18
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 970b2500b2e67f340800000000000000
+      internalID: 4897504250756771961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_23
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 63
+        width: 18
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a9614f884efb7fb0800000000000000
+      internalID: -4648842602735375959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_24
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 33
+        width: 18
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dac0d14f87a11e10800000000000000
+      internalID: 2166697129468283605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_25
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 33
+        width: 18
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36a9d4b7004bc3a20800000000000000
+      internalID: 3043505362357295715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_26
+      rect:
+        serializedVersion: 2
+        x: 110
+        y: 33
+        width: 18
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ecc5c8b53ee48720800000000000000
+      internalID: 2847662778905644256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_27
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 33
+        width: 18
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8c703f18d3075fb0800000000000000
+      internalID: -4659251062720398198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_28
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 33
+        width: 18
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f27ed9deb77874390800000000000000
+      internalID: -7834144060450412753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_29
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 33
+        width: 18
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15315f3c6c5485a80800000000000000
+      internalID: -8477949578531499183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_30
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 33
+        width: 18
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d11c1df3dfca8500800000000000000
+      internalID: 399360026367234514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_31
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 3
+        width: 21
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d6759bd121b1a8c0800000000000000
+      internalID: -3989713035897506090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_32
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 3
+        width: 21
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0fe347f719ca0890800000000000000
+      internalID: -7490953925407543541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_33
+      rect:
+        serializedVersion: 2
+        x: 110
+        y: 3
+        width: 22
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3169e1a85afae8ba0800000000000000
+      internalID: -6084732921009236461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_34
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 3
+        width: 22
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e3a3f5c3becc4590800000000000000
+      internalID: -7688543192312732697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_35
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 3
+        width: 22
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b3fa3587b6b42e40800000000000000
+      internalID: 5630826333450466230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_36
+      rect:
+        serializedVersion: 2
+        x: 254
+        y: 3
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebe66a78771cf3460800000000000000
+      internalID: 7223705046446665406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Character-and-Zombie_37
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 3
+        width: 23
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb56b7c493145ea90800000000000000
+      internalID: -7285345107849812548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Character-and-Zombie_0: 6922488308559095316
+      Character-and-Zombie_1: 9036478088626311669
+      Character-and-Zombie_10: -622995676284333385
+      Character-and-Zombie_11: 6329521926000744539
+      Character-and-Zombie_12: 4414604163642162245
+      Character-and-Zombie_13: 1219067998086479940
+      Character-and-Zombie_14: 7742201930735839921
+      Character-and-Zombie_15: 5075046419819842073
+      Character-and-Zombie_16: -9170724298823919241
+      Character-and-Zombie_17: -6340033454394207751
+      Character-and-Zombie_18: -6645234540853169308
+      Character-and-Zombie_19: 6685893693745398729
+      Character-and-Zombie_2: -1547111209010451619
+      Character-and-Zombie_20: 4221923655265133786
+      Character-and-Zombie_21: 5655382064955955474
+      Character-and-Zombie_22: 4897504250756771961
+      Character-and-Zombie_23: -4648842602735375959
+      Character-and-Zombie_24: 2166697129468283605
+      Character-and-Zombie_25: 3043505362357295715
+      Character-and-Zombie_26: 2847662778905644256
+      Character-and-Zombie_27: -4659251062720398198
+      Character-and-Zombie_28: -7834144060450412753
+      Character-and-Zombie_29: -8477949578531499183
+      Character-and-Zombie_3: 4993437432923136895
+      Character-and-Zombie_30: 399360026367234514
+      Character-and-Zombie_31: -3989713035897506090
+      Character-and-Zombie_32: -7490953925407543541
+      Character-and-Zombie_33: -6084732921009236461
+      Character-and-Zombie_34: -7688543192312732697
+      Character-and-Zombie_35: 5630826333450466230
+      Character-and-Zombie_36: 7223705046446665406
+      Character-and-Zombie_37: -7285345107849812548
+      Character-and-Zombie_4: 1771417928115877239
+      Character-and-Zombie_5: 9087043168588977377
+      Character-and-Zombie_6: 4263614908200633684
+      Character-and-Zombie_7: -3368227943496410742
+      Character-and-Zombie_8: 6751450855985079194
+      Character-and-Zombie_9: 5698467264175617184
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

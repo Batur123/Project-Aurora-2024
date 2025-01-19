@@ -1,5 +1,4 @@
 ﻿using Unity.Entities;
-using UnityEngine;
 
 namespace ECS.Bakers {
     public class PlayerSpawnBaker : Baker<PlayerSpawnerAuthoring> {

@@ -73,13 +73,15 @@ namespace ECS {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             if (!SystemAPI.HasSingleton<PlayerSingleton>()) {
-                foreach (var (spawner, entity) in SystemAPI.Query<RefRO<EntityData>>()
+                foreach (var (spawner, entity) 
+                         in SystemAPI.Query<RefRO<EntityData>>()
                              .WithEntityAccess()
                              .WithAll<PlayerTag>()
                              .WithNone<IsSpawned>()) {
-                    Debug.Log(spawner.ValueRO.prefab);
-                    Entity playerEntity = ecb.Instantiate(spawner.ValueRO.prefab);
 
+                    
+                    Entity playerEntity = ecb.Instantiate(spawner.ValueRO.prefab);
+          
                     ecb.SetComponent(playerEntity, LocalTransform.FromPositionRotationScale(
                         //new float3(10, 0, 0),
                         new float3(0, 0, 0),
@@ -118,7 +120,7 @@ namespace ECS {
                     ecb.AddComponent<ReloadTimer>(playerEntity);
                     
                     ecb.AddBuffer<Inventory>(playerEntity);
-
+                    
                     Entity singletonEntity = ecb.CreateEntity();
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });
                     ecb.SetName(singletonEntity, "Player Singleton Entity");
@@ -228,7 +230,7 @@ namespace ECS {
                 enemyType = randomEnemyType,
                 health = 10,
                 damage = 2f,
-                meleeAttackRange = 1f,
+                meleeAttackRange = 0.2f,
                 attackSpeed = 1f
             });
 
@@ -281,6 +283,7 @@ namespace ECS {
     }
 
     [BurstCompile]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct EnemyMovementSystem : ISystem {
         public void OnUpdate(ref SystemState state) {
             if (SystemAPI.TryGetSingletonRW(out RefRW<PlayerSingleton> singletonRW)) {
@@ -291,6 +294,31 @@ namespace ECS {
                                                        1 * SystemAPI.Time.DeltaTime;
                 }
             }
+        }
+    }
+
+    public partial class EnemyMovementSpriteFlip : SystemBase {
+        protected override void OnCreate() {
+            RequireForUpdate<PlayerSingleton>();
+            RequireForUpdate<EnemyTag>();
+        }
+
+
+        protected override void OnUpdate() {
+            var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+            LocalTransform playerLocalTransform = SystemAPI.GetComponent<LocalTransform>(playerSingleton.PlayerEntity);
+            
+            Entities.WithAll<EnemyTag, IsSpawned>()
+                .ForEach((LocalTransform localTransform, SpriteRenderer spriteRenderer) =>
+                {
+                    var directionToPlayer = playerLocalTransform.Position.x - localTransform.Position.x;
+                    if (directionToPlayer > 0) {
+                        spriteRenderer.flipX = false;
+                    } else if (directionToPlayer < 0) {
+                        spriteRenderer.flipX = true;
+                    }
+                })
+                .WithoutBurst().Run();
         }
     }
 
@@ -377,7 +405,7 @@ namespace ECS {
             }
         }
     }
-
+    
     // [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     // public partial struct PlayerAnimationSystem : ISystem
     // {
@@ -395,7 +423,6 @@ namespace ECS {
 
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct PlayerMovementSystem : ISystem {
-        [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PlayerSingleton>();
             state.RequireForUpdate<WaveManager>();

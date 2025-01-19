@@ -78,8 +78,8 @@ SpriteRenderer:
   m_SortingLayerID: 361195807
   m_SortingLayer: 3
   m_SortingOrder: 1
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 0.8867924, g: 0.07194724, b: 0.07194724, a: 1}
+  m_Sprite: {fileID: -3989713035897506090, guid: e13d39c4935f1e141b3b88c53812eee6, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -101,15 +101,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b275e5f92732148048d7b77e264ac30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShapeType: 2
+  m_ShapeType: 0
   m_PrimitiveCenter:
     x: 0
     y: 0
     z: 0
   m_PrimitiveSize:
-    x: 0.17745185
-    y: 0.17745185
-    z: 0.17745185
+    x: 0.123802125
+    y: 0.19069044
+    z: 0.19069044
   m_PrimitiveOrientation:
     Value:
       x: 0
@@ -117,15 +117,15 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_Capsule:
-    Height: 0.17745185
-    Radius: 0.088725924
+    Height: 0.19069044
+    Radius: 0.09534522
     Axis: 2
   m_Cylinder:
-    Height: 0.17745185
-    Radius: 0.088725924
-    Axis: 2
+    Height: 0.123802125
+    Radius: 0.09534522
+    Axis: 0
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.088725924
+  m_SphereRadius: 0.09534522
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.015

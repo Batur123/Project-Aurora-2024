@@ -472,7 +472,7 @@ public class UIController : MonoBehaviour {
                     itemData.onGround = true;
                     itemData.isEquipped = false;
                     commandBuffer.SetComponent(itemAtIndex, itemData);
-
+                    
                     SpriteRenderer spriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(itemAtIndex);
                     spriteRenderer.enabled = true;
 
