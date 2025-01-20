@@ -86,7 +86,7 @@ namespace ECS {
                         //new float3(10, 0, 0),
                         new float3(0, 0, 0),
                         quaternion.identity,
-                        2.5f
+                        0.2f
                     ));
                     ecb.AddComponent<PlayerTag>(playerEntity);
                     ecb.AddComponent<IsSpawned>(entity);
@@ -120,8 +120,6 @@ namespace ECS {
                     ecb.AddComponent<ReloadTimer>(playerEntity);
                     
                     ecb.AddBuffer<Inventory>(playerEntity);
-                    
-                    ecb.AddComponent<ClosestEnemyComponent>(playerEntity);
                     
                     Entity singletonEntity = ecb.CreateEntity();
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });
@@ -452,15 +450,6 @@ namespace ECS {
                 Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
                 RefRW<LocalTransform> transformRW = SystemAPI.GetComponentRW<LocalTransform>(playerEntity);
                 transformRW.ValueRW.Position += new float3(moveDirection * 2 * SystemAPI.Time.DeltaTime, 0f);
-
-                if (state.EntityManager.HasComponent<SpriteRenderer>(playerEntity)) {
-                    SpriteRenderer spriteRenderer = state.EntityManager.GetComponentObject<SpriteRenderer>(playerEntity);
-                    if (moveDirection.x > 0) {
-                        spriteRenderer.flipX = false;
-                    } else if (moveDirection.x < 0) {
-                        spriteRenderer.flipX = true;
-                    }
-                }
             }
         }
     }

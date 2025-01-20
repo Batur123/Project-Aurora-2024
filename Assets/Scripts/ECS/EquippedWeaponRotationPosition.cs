@@ -6,7 +6,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using Vector3 = UnityEngine.Vector3;
 
 namespace ECS {
@@ -31,45 +30,30 @@ namespace ECS {
             if (equippedGunBuffer.IsEmpty) {
                 return;
             }
-
+            
             if (state.EntityManager.HasComponent<InventoryOpen>(playerSingleton.PlayerEntity)) {
                 return;
             }
 
             // Get the player and gun's local transforms
-            var localTransform = SystemAPI.GetComponentRO<LocalTransform>(playerSingleton.PlayerEntity);
-            var closestEnemy = SystemAPI.GetComponentRO<ClosestEnemyComponent>(playerSingleton.PlayerEntity);
+            var localTransform = SystemAPI.GetComponent<LocalTransform>(playerSingleton.PlayerEntity);
             var gunEntity = equippedGunBuffer[0];
             var gunEntityLocalTransform = SystemAPI.GetComponent<LocalTransform>(gunEntity.GunEntity);
+            var mousePositionEntity = SystemAPI.GetSingleton<MousePosition>();
 
-            float2 playerPosition = new float2(localTransform.ValueRO.Position.x, localTransform.ValueRO.Position.y);
-
-            float2 targetPosition;
-            if (closestEnemy.ValueRO.closestEnemy == Entity.Null) {
-                targetPosition = playerPosition + new float2(1, 0);
-            } else {
-                if (closestEnemy.ValueRO.closestEnemy != Entity.Null && SystemAPI.HasComponent<LocalTransform>(closestEnemy.ValueRO.closestEnemy)) {
-                    var enemyLocalTransform = SystemAPI.GetComponentRO<LocalTransform>(closestEnemy.ValueRO.closestEnemy);
-                    targetPosition = new float2(
-                        enemyLocalTransform.ValueRO.Position.x,
-                        enemyLocalTransform.ValueRO.Position.y
-                    );
-                }
-                else {
-                    targetPosition = playerPosition + new float2(1, 0);
-                }
-            }
-
-            float2 directionToTarget = targetPosition - playerPosition;
-            float angle = math.atan2(directionToTarget.y, directionToTarget.x);
-
+            Vector3 mouseWorldPosition = mousePositionEntity.Value;
+            float2 playerPosition = new float2(localTransform.Position.x, localTransform.Position.y);
+            float2 mousePosition = new float2(mouseWorldPosition.x, mouseWorldPosition.y);
+            float2 directionToMouse = mousePosition - playerPosition;
+            float angle = math.atan2(directionToMouse.y, directionToMouse.x);
+            float playerAngle = math.atan2(localTransform.Rotation.value.y, localTransform.Rotation.value.x);
+            angle -= playerAngle;
             gunEntityLocalTransform.Rotation = quaternion.Euler(0, 0, angle);
             gunEntityLocalTransform.Position = new float3(
-                playerPosition.x + math.normalize(directionToTarget).x * 0.2f,
-                playerPosition.y + math.normalize(directionToTarget).y * 0.2f,
-                localTransform.ValueRO.Position.z
+                playerPosition.x + math.normalize(directionToMouse).x * 0.2f,
+                playerPosition.y + math.normalize(directionToMouse).y * 0.2f,
+                localTransform.Position.z
             );
-
             SystemAPI.SetComponent(gunEntity.GunEntity, gunEntityLocalTransform);
         }
     }
