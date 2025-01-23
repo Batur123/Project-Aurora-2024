@@ -20,6 +20,6 @@ MonoBehaviour:
   gunType: 1
   attackRate: 0.7
   recoilAmount: 4
-  spreadAmount: 5
+  spreadAmount: 10
   lastAttackTime: 0
   bulletsPerShot: 3

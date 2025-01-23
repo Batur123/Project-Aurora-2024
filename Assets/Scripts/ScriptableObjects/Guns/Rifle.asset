@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Rifle
   m_EditorClassIdentifier: 
   gunName: Rifle
-  ammoCapacity: 200
+  ammoCapacity: 15
   durability: 8
   damage: 1
   reloadTime: 8
   gunType: 2
-  attackRate: 100
+  attackRate: 6
   recoilAmount: 2
-  spreadAmount: 100
+  spreadAmount: 4
   lastAttackTime: 0
-  bulletsPerShot: 100
+  bulletsPerShot: 1

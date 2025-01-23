@@ -86,7 +86,7 @@ namespace ECS {
                         //new float3(10, 0, 0),
                         new float3(0, 0, 0),
                         quaternion.identity,
-                        0.2f
+                        3f
                     ));
                     ecb.AddComponent<PlayerTag>(playerEntity);
                     ecb.AddComponent<IsSpawned>(entity);
@@ -245,7 +245,7 @@ namespace ECS {
                 Linear = 0.9f,
                 Angular = 0.9f
             });
-            spawnerTime.nextSpawnTime = 2f;
+            spawnerTime.nextSpawnTime = 1f;
         }
     }
 
@@ -289,9 +289,11 @@ namespace ECS {
             if (SystemAPI.TryGetSingletonRW(out RefRW<PlayerSingleton> singletonRW)) {
                 Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
                 RefRO<LocalTransform> playerTransform = SystemAPI.GetComponentRO<LocalTransform>(playerEntity);
-                foreach (var enemyTransform in SystemAPI.Query<RefRW<LocalTransform>>().WithAll<EnemyTag, IsSpawned>()) {
-                    enemyTransform.ValueRW.Position += math.normalize(playerTransform.ValueRO.Position - enemyTransform.ValueRO.Position) *
-                                                       1 * SystemAPI.Time.DeltaTime;
+
+                foreach (var (enemyPhysics, enemyTransform) in SystemAPI.Query<RefRW<PhysicsVelocity>, RefRO<LocalTransform>>()
+                             .WithAll<EnemyTag, IsSpawned>()) {
+                    float3 direction = math.normalize(playerTransform.ValueRO.Position - enemyTransform.ValueRO.Position);
+                    enemyPhysics.ValueRW.Linear = direction * 1f; // Adjust speed here
                 }
             }
         }
@@ -397,7 +399,7 @@ namespace ECS {
                     return;
                 }
 
-                waveManager.waveTimer = 5f;
+                waveManager.waveTimer = 20f;
                 waveManager.currentWave++;
                 waveManager.isActive = true;
                 Debug.Log(waveManager.waveTimer + " - " + waveManager.currentWave + " - " + waveManager.isActive);
@@ -450,6 +452,18 @@ namespace ECS {
                 Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
                 RefRW<LocalTransform> transformRW = SystemAPI.GetComponentRW<LocalTransform>(playerEntity);
                 transformRW.ValueRW.Position += new float3(moveDirection * 2 * SystemAPI.Time.DeltaTime, 0f);
+                
+                if (state.EntityManager.HasComponent<SpriteRenderer>(playerEntity)) {
+                    SpriteRenderer spriteRenderer = state.EntityManager.GetComponentObject<SpriteRenderer>(playerEntity);
+                    switch (moveDirection.x) {
+                        case > 0:
+                            spriteRenderer.flipX = false;
+                            break;
+                        case < 0:
+                            spriteRenderer.flipX = true;
+                            break;
+                    }
+                }
             }
         }
     }
@@ -494,6 +508,13 @@ namespace ECS {
                 Velocity = new float3(shootDirection.x, shootDirection.y, 0f) * 10f,
                 BaseDamage = 2f,
             });
+            
+            // test
+            ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileDataComponent {
+                projectileType = ProjectileType.BULLET,
+                piercingEnemyNumber = 2,
+            });
+            // test
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileTag { });
         }
     }
@@ -690,6 +711,7 @@ namespace ECS {
         private ComponentLookup<ProjectileComponent> projectileComponentLookup;
         private ComponentLookup<EnemyData> enemyDataLookup;
         private ComponentLookup<PlayerData> playerDataLookup;
+        private ComponentLookup<ProjectileDataComponent> projectileDataLookup;
 
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<SimulationSingleton>();
@@ -698,6 +720,7 @@ namespace ECS {
             projectileComponentLookup = state.GetComponentLookup<ProjectileComponent>(isReadOnly: false);
             enemyDataLookup = state.GetComponentLookup<EnemyData>(isReadOnly: false);
             playerDataLookup = state.GetComponentLookup<PlayerData>(isReadOnly: false);
+            projectileDataLookup = state.GetComponentLookup<ProjectileDataComponent>(isReadOnly: false);
         }
 
         public void OnUpdate(ref SystemState state) {
@@ -706,12 +729,14 @@ namespace ECS {
             projectileComponentLookup.Update(ref state);
             enemyDataLookup.Update(ref state);
             playerDataLookup.Update(ref state);
+            projectileDataLookup.Update(ref state);
 
             state.Dependency = new CheckCollisionEvents {
                 colliderLookup = colliderLookup,
                 projectileComponentLookup = projectileComponentLookup,
                 enemyDataLookup = enemyDataLookup,
                 playerDataLookup = playerDataLookup,
+                projectileDataLookup = projectileDataLookup,
                 entityManager = state.EntityManager,
                 playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity,
                 ecb = ecb.AsParallelWriter(),
@@ -741,6 +766,7 @@ namespace ECS {
             public ComponentLookup<ProjectileComponent> projectileComponentLookup;
             public ComponentLookup<EnemyData> enemyDataLookup;
             public ComponentLookup<PlayerData> playerDataLookup;
+            public ComponentLookup<ProjectileDataComponent> projectileDataLookup;
             public Entity playerEntity;
             public EntityManager entityManager;
             public EntityCommandBuffer.ParallelWriter ecb;
@@ -753,12 +779,21 @@ namespace ECS {
                     var collider = colliderLookup[otherEntity];
                     var selectedFilter = CheckCollisionFilter(collider);
 
-                    if (selectedFilter == CollisionBelongsToLayer.Wall) {
-                        ecb.DestroyEntity(0, projectile);
-                        return;
-                    }
+                    //if (selectedFilter == CollisionBelongsToLayer.Wall) {
+                    //    ecb.DestroyEntity(0, projectile);
+                    //    return;
+                    //}
+                    
+                    var projectileData = projectileDataLookup[projectile];
 
-                    HandleProjectileCollision(projectile, otherEntity);
+                    //switch (projectileData.projectileType) {
+                    //    case ProjectileType.BULLET: {
+                    //        HandleBulletProjectile(projectile, otherEntity, projectileData);
+                    //        return;
+                    //    }
+                    //}
+                    //
+                    //HandleProjectileCollision(projectile, otherEntity);
                     return;
                 }
 
@@ -767,6 +802,10 @@ namespace ECS {
                     return;
                 }
 
+            }
+
+            public void HandleBulletProjectile(Entity projectile, Entity otherEntity, ProjectileDataComponent projectileData) {
+                // (proj)
             }
 
             //void SpawnItem() {

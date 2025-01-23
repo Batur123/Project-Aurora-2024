@@ -9,12 +9,6 @@ namespace ECS {
         TANK_ZOMBIE,
     }
 
-    public enum ProjectileType {
-        BULLET,
-        GRENADE,
-        MISSILE,
-    }
-
     public enum CollisionBelongsToLayer {
         None = 0,
         Player = 1 << 0,
@@ -124,6 +118,20 @@ namespace ECS {
         public float3 Velocity;
         public float BaseDamage;
         public float Speed;
+    }
+
+    public enum ProjectileType {
+        NONE,
+        BULLET,
+        GRENADE,
+        EXPLOSIVE_BULLET,
+        POISON_BULLET,
+        ELECTRIC_BULLET,
+    }
+    
+    public struct ProjectileDataComponent : IComponentData {
+        public ProjectileType projectileType;
+        public int piercingEnemyNumber;
     }
 
     public struct PlayerSingleton : IComponentData {
