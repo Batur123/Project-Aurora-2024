@@ -1,13 +1,20 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Physics;
 
-namespace ECS
+namespace ECS.StatefulEvents
 {
     public static class StatefulEventCollectionJobs
     {
+        [BurstCompile]
+        public struct CollectTriggerEvents : ITriggerEventsJob
+        {
+            public NativeList<StatefulTriggerEvent> TriggerEvents;
+            public void Execute(TriggerEvent triggerEvent) => TriggerEvents.Add(new StatefulTriggerEvent(triggerEvent));
+        }
+
         [BurstCompile]
         public struct CollectCollisionEvents : ICollisionEventsJob
         {

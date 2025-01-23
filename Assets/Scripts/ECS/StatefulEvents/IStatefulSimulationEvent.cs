@@ -1,7 +1,7 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Physics;
 
-namespace ECS
+namespace ECS.StatefulEvents
 {
     // Describes an event state.
     // Event state is set to:

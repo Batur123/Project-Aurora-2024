@@ -1,11 +1,11 @@
-﻿using ECS;
 using Unity.Assertions;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using UnityEngine;
 
-namespace ECS {
+namespace ECS.StatefulEvents
+{
     public class StatefulCollisionEventBufferAuthoring : MonoBehaviour
     {
         [Tooltip("If selected, the details will be calculated in collision event dynamic buffer of this entity")]

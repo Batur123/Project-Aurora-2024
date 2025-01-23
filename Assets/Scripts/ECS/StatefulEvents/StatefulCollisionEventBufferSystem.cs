@@ -1,10 +1,10 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
-namespace ECS
+namespace ECS.StatefulEvents
 {
     // This system converts stream of CollisionEvents to StatefulCollisionEvents that can be stored in a Dynamic Buffer.
     // In order for this conversion, it is required to:
@@ -78,7 +78,8 @@ namespace ECS
             var currentEvents = m_StateFulEventBuffers.Current;
             var previousEvents = m_StateFulEventBuffers.Previous;
 
-            state.Dependency = new StatefulEventCollectionJobs.CollectCollisionEventsWithDetails
+            state.Dependency = new StatefulEventCollectionJobs.
+                CollectCollisionEventsWithDetails
             {
                 CollisionEvents = currentEvents,
                 PhysicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld,
@@ -86,7 +87,8 @@ namespace ECS
             }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
 
 
-            state.Dependency = new StatefulEventCollectionJobs.ConvertEventStreamToDynamicBufferJob<StatefulCollisionEvent, DummyExcludeComponent>
+            state.Dependency = new StatefulEventCollectionJobs.
+                ConvertEventStreamToDynamicBufferJob<StatefulCollisionEvent, DummyExcludeComponent>
             {
                 CurrentEvents = currentEvents,
                 PreviousEvents = previousEvents,

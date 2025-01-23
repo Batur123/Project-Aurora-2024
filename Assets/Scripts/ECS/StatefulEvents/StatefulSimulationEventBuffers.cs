@@ -1,6 +1,6 @@
-﻿using Unity.Collections;
+using Unity.Collections;
 
-namespace ECS
+namespace ECS.StatefulEvents
 {
     public struct StatefulSimulationEventBuffers<T> where T : unmanaged, IStatefulSimulationEvent<T>
     {
