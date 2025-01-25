@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using ECS.Animations;
+using Unity.Entities;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -37,6 +38,7 @@ public class SpriteAnimationAuthoring : MonoBehaviour
                 CurrentFrame = 0,
                 Timer = 0f
             });
+            AddComponent(entity, new PlayerAnimation {});
         }
     }
 }

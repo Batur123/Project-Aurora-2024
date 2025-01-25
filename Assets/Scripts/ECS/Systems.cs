@@ -19,6 +19,7 @@ namespace ECS {
     public partial struct EnemyMovementSystem : ISystem {
         public void OnUpdate(ref SystemState state) {
             if (SystemAPI.TryGetSingletonRW(out RefRW<PlayerSingleton> singletonRW)) {
+                return;
                 Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
                 RefRO<LocalTransform> playerTransform = SystemAPI.GetComponentRO<LocalTransform>(playerEntity);
 

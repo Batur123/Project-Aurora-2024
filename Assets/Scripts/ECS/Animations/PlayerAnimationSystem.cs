@@ -1,30 +1,9 @@
 ﻿using ECS;
+using ECS.Animations;
 using Unity.Entities;
 using UnityEngine;
 using Unity.Burst;
 using Unity.Mathematics;
-
-public enum AnimationType : byte
-{
-    Idle,
-    Walk
-}
-
-public struct AnimatorState : IComponentData
-{
-    public AnimationType CurrentAnimation;
-    public int CurrentFrame;
-    public float Timer;
-}
-
-public class SpriteAnimationClips : IComponentData
-{
-    public Sprite[] IdleSprites;
-    public float IdleFrameDuration;
-
-    public Sprite[] WalkSprites;
-    public float WalkFrameDuration;
-}
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -33,6 +12,7 @@ public partial struct SpriteAnimationSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<PlayerSingleton>();
+        state.RequireForUpdate<PlayerAnimation>();
     }
 
     public void OnUpdate(ref SystemState state)
@@ -46,7 +26,7 @@ public partial struct SpriteAnimationSystem : ISystem
                       || Input.GetKey(KeyCode.D);
 
         // 1) Handle transitions (Idle <--> Walk)
-        foreach (var animRef in SystemAPI.Query<RefRW<AnimatorState>>())
+        foreach (var animRef in SystemAPI.Query<RefRW<AnimatorState>>().WithAll<PlayerAnimation>())
         {
             var anim = animRef.ValueRO;
 
@@ -76,7 +56,7 @@ public partial struct SpriteAnimationSystem : ISystem
 
         // 2) Animation update & sprite assignment
         foreach (var (animRef, clips, entity) in
-                 SystemAPI.Query<RefRW<AnimatorState>, SpriteAnimationClips>()
+                 SystemAPI.Query<RefRW<AnimatorState>, SpriteAnimationClips>().WithAll<PlayerAnimation>()
                           .WithEntityAccess())
         {
             var anim = animRef.ValueRO;

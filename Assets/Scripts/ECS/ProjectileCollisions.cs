@@ -17,7 +17,6 @@ namespace ECS {
         private ComponentLookup<EnemyData> enemyDataLookup;
         private ComponentLookup<PlayerData> playerDataLookup;
         private ComponentLookup<ProjectileDataComponent> projectileDataLookup;
-        public Entity playerEntity;
 
         private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state) {
             var ecbSingleton = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
@@ -57,6 +56,7 @@ namespace ECS {
                 frameCount = Time.frameCount,
                 playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity,
             }.Schedule(state.Dependency);
+            state.Dependency.Complete();
         }
         
         static CollisionBelongsToLayer GetCollisionFilter(PhysicsCollider collider) {
@@ -120,34 +120,35 @@ namespace ECS {
                     
                     switch (triggerEvent.State) {
                         case StatefulEventState.Enter: {
-                            
-                            
                             if (enemyDataLookup.HasComponent(targetEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
                                 EnemyData enemyData = enemyDataLookup[targetEntity];
                                 ProjectileComponent projectileComponent = projectileComponentLookup[projectileEntity];
                                 ProjectileDataComponent projectileDataComponent = projectileDataLookup[projectileEntity];
-
+                                
+                                // Decrease piercing
+                                projectileDataComponent.piercingEnemyNumber -= 1;
+                                
+                                // without if else statement it causes errors for commandbuffer to destroy + set component at the same time
                                 if (projectileDataComponent.piercingEnemyNumber <= 0) {
                                     ecb.DestroyEntity(chunkIndex, projectileEntity);
                                     continue;
                                 }
-                                
+                                else {
+                                    ecb.SetComponent(chunkIndex, projectileEntity, projectileDataComponent);
+                                }
+
+                                // Decrease enemy health
+                                enemyData.health -= projectileComponent.BaseDamage;
                                 if (enemyData.health <= 0f) {
                                     // Increase Player XP
                                     PlayerData playerData = playerDataLookup[playerEntity];
                                     playerData.experience += 1;
                                     ecb.SetComponent(chunkIndex, playerEntity, playerData);
                                     ecb.DestroyEntity(chunkIndex, targetEntity);
-                                    continue;
                                 }
-                                
-                                // Decrease piercing
-                                projectileDataComponent.piercingEnemyNumber -= 1;
-                                ecb.SetComponent(chunkIndex, projectileEntity, projectileDataComponent);
-
-                                // Decrease enemy health
-                                enemyData.health -= projectileComponent.BaseDamage;
-                                ecb.SetComponent(chunkIndex, targetEntity, enemyData);
+                                else {
+                                    ecb.SetComponent(chunkIndex, targetEntity, enemyData);
+                                }
                             }
                             break;
                         }
