@@ -1,9 +1,8 @@
 using Unity.Assertions;
 using Unity.Entities;
-using Unity.Physics;
 using UnityEngine;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     public class StatefulTriggerEventBufferAuthoring : MonoBehaviour
     {

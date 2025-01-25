@@ -1,10 +1,9 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Physics;
 using Unity.Physics.Systems;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     // This system converts stream of CollisionEvents to StatefulCollisionEvents that can be stored in a Dynamic Buffer.
     // In order for this conversion, it is required to:

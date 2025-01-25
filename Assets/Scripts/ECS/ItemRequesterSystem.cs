@@ -234,7 +234,7 @@ namespace ECS {
                     isStackable = false,
                     quantity = 1
                 });
-                
+
                 ecb.AddBuffer<GunAttachment>(gunEntity);
                 
                 var position = request.ValueRO.position;

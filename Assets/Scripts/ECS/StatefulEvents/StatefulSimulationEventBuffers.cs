@@ -1,6 +1,7 @@
 using Unity.Collections;
+using UnityEngine;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     public struct StatefulSimulationEventBuffers<T> where T : unmanaged, IStatefulSimulationEvent<T>
     {
@@ -35,6 +36,23 @@ namespace ECS.StatefulEvents
         /// <param name="sortCurrent">Specifies whether the Current events list needs to be sorted first.</param>
         public void GetStatefulEvents(NativeList<T> statefulEvents, bool sortCurrent = true) => GetStatefulEvents(Previous, Current, statefulEvents, sortCurrent);
 
+        public static string CombineStatefulEventsToString(NativeList<T> statefulEvents)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < statefulEvents.Length; i++)
+            {
+                sb.Append(ConvertStatefulEventStateToString(statefulEvents[i].State) + " "+ statefulEvents[i].EntityA +" "+ statefulEvents[i].EntityB);
+                if (i < statefulEvents.Length - 1)
+                    sb.Append(", ");
+            }
+            return sb.ToString();
+        }
+        
+        public static string ConvertStatefulEventStateToString(params StatefulEventState[] states)
+        {
+            return string.Join(" ", states);
+        }
+        
         /// <summary>
         /// Given two sorted event buffers, this function returns a single combined list with
         /// all the appropriate <see cref="StatefulEventState"/> set on each event.
@@ -46,7 +64,7 @@ namespace ECS.StatefulEvents
         public static void GetStatefulEvents(NativeList<T> previousEvents, NativeList<T> currentEvents, NativeList<T> statefulEvents, bool sortCurrent = true)
         {
             if (sortCurrent) currentEvents.Sort();
-
+            //Debug.Log(CombineStatefulEventsToString(previousEvents));
             statefulEvents.Clear();
 
             int c = 0;

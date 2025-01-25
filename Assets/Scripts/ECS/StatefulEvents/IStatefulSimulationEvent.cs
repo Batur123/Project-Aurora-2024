@@ -1,7 +1,6 @@
 using Unity.Entities;
-using Unity.Physics;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     // Describes an event state.
     // Event state is set to:

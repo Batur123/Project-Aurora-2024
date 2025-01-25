@@ -2,9 +2,8 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Physics;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     public static class StatefulEventCollectionJobs
     {
@@ -82,7 +81,7 @@ namespace ECS.StatefulEvents
                     var addToEntityA = EventLookup.HasBuffer(statefulEvent.EntityA) &&
                         (!UseExcludeComponent || !EventExcludeLookup.HasComponent(statefulEvent.EntityA));
                     var addToEntityB = EventLookup.HasBuffer(statefulEvent.EntityB) &&
-                        (!UseExcludeComponent || !EventExcludeLookup.HasComponent(statefulEvent.EntityA));
+                        (!UseExcludeComponent || !EventExcludeLookup.HasComponent(statefulEvent.EntityB));
 
                     if (addToEntityA)
                     {

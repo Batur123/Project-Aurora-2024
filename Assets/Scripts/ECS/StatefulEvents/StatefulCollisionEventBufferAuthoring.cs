@@ -1,10 +1,9 @@
 using Unity.Assertions;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using UnityEngine;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     public class StatefulCollisionEventBufferAuthoring : MonoBehaviour
     {

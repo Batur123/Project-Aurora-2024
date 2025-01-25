@@ -3,9 +3,8 @@ using Unity.Jobs;
 using Unity.Physics.Systems;
 using Unity.Collections;
 using Unity.Burst;
-using Unity.Physics;
 
-namespace ECS.StatefulEvents
+namespace Unity.Physics.Stateful
 {
     // This system converts stream of TriggerEvents to StatefulTriggerEvents that can be stored in a Dynamic Buffer.
     // In order for this conversion, it is required to:

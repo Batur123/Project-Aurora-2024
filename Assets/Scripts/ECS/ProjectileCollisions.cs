@@ -1,20 +1,35 @@
 ﻿using System;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
+using Unity.Physics.Stateful;
+using Unity.Physics.Systems;
+using UnityEngine;
 
 namespace ECS {
+    [RequireMatchingQueriesForUpdate]
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    public partial struct CheckProjectileCollisionsSystem : ISystem {
+    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    public partial struct RegularBulletTriggerSystem : ISystem {
         private ComponentLookup<PhysicsCollider> colliderLookup;
         private ComponentLookup<ProjectileComponent> projectileComponentLookup;
         private ComponentLookup<EnemyData> enemyDataLookup;
         private ComponentLookup<PlayerData> playerDataLookup;
         private ComponentLookup<ProjectileDataComponent> projectileDataLookup;
+        public Entity playerEntity;
 
+        private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state) {
+            var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
+            var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
+            return ecb.AsParallelWriter();
+        }
+
+        [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<SimulationSingleton>();
             state.RequireForUpdate<PlayerSingleton>();
+
             colliderLookup = state.GetComponentLookup<PhysicsCollider>(isReadOnly: true);
             projectileComponentLookup = state.GetComponentLookup<ProjectileComponent>(isReadOnly: false);
             enemyDataLookup = state.GetComponentLookup<EnemyData>(isReadOnly: false);
@@ -22,35 +37,41 @@ namespace ECS {
             projectileDataLookup = state.GetComponentLookup<ProjectileDataComponent>(isReadOnly: false);
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state) {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
             colliderLookup.Update(ref state);
             projectileComponentLookup.Update(ref state);
             enemyDataLookup.Update(ref state);
             playerDataLookup.Update(ref state);
             projectileDataLookup.Update(ref state);
 
-            state.Dependency = new CheckTriggerEvents {
+            EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
+
+            state.Dependency = new TriggerEventsJob {
+                ecb = ecb,
                 colliderLookup = colliderLookup,
                 projectileComponentLookup = projectileComponentLookup,
                 enemyDataLookup = enemyDataLookup,
                 playerDataLookup = playerDataLookup,
                 projectileDataLookup = projectileDataLookup,
-                entityManager = state.EntityManager,
+                frameCount = Time.frameCount,
                 playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity,
-                ecb = ecb.AsParallelWriter(),
-                deltaTime = SystemAPI.Time.DeltaTime
-                //itemPrefab = itemPrefab,
-            }.Schedule(SystemAPI.GetSingleton<SimulationSingleton>(), state.Dependency);
-            state.Dependency.Complete();
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
+            }.Schedule(state.Dependency);
         }
-
-        static CollisionBelongsToLayer CheckCollisionFilter(PhysicsCollider collider) {
+        
+        static CollisionBelongsToLayer GetCollisionFilter(PhysicsCollider collider) {
             var collisionFilter = collider.Value.Value.GetCollisionFilter();
 
-            foreach (CollisionBelongsToLayer layer in Enum.GetValues(typeof(CollisionBelongsToLayer))) {
+            CollisionBelongsToLayer[] layers = {
+                CollisionBelongsToLayer.None,
+                CollisionBelongsToLayer.Player,
+                CollisionBelongsToLayer.Enemy,
+                CollisionBelongsToLayer.Projectile,
+                CollisionBelongsToLayer.Wall,
+                CollisionBelongsToLayer.GunEntity,
+            };
+
+            foreach (var layer in layers) {
                 if ((collisionFilter.BelongsTo & (uint)layer) != 0) {
                     return layer;
                 }
@@ -59,99 +80,89 @@ namespace ECS {
             return CollisionBelongsToLayer.None;
         }
 
+        [BurstCompile]
+        public partial struct TriggerEventsJob : IJobEntity {
+            public EntityCommandBuffer.ParallelWriter ecb;
 
-        struct CheckTriggerEvents : ITriggerEventsJob {
             [ReadOnly] public ComponentLookup<PhysicsCollider> colliderLookup;
+            
             public ComponentLookup<ProjectileComponent> projectileComponentLookup;
-            public ComponentLookup<EnemyData> enemyDataLookup;
             public ComponentLookup<PlayerData> playerDataLookup;
             public ComponentLookup<ProjectileDataComponent> projectileDataLookup;
+            public ComponentLookup<EnemyData> enemyDataLookup;
+
             public Entity playerEntity;
-            public EntityManager entityManager;
-            public EntityCommandBuffer.ParallelWriter ecb;
-            public float deltaTime;
+            public int frameCount;
 
-            public void Execute(TriggerEvent collisionEvent) {
-                var (projectile, otherEntity) = GetEntityWithComponent<ProjectileTag>(collisionEvent.EntityA, collisionEvent.EntityB);
-                if (projectile == Entity.Null || !entityManager.HasComponent<PhysicsCollider>(otherEntity)) {
-                    return;
-                }
-                
-                if (CheckCollisionFilter(colliderLookup[otherEntity]) == CollisionBelongsToLayer.Wall) {
-                    ecb.DestroyEntity(0, projectile);
-                    return;
-                }
+            void Execute([ChunkIndexInQuery] int chunkIndex, Entity projectileEntity, ref DynamicBuffer<StatefulTriggerEvent> buffer) {
+
+                for (int i = 0; i < buffer.Length; i++) {
+                    var triggerEvent = buffer[i];
+                    var targetEntity = triggerEvent.GetOtherEntity(projectileEntity);
+
+                    if (projectileEntity == Entity.Null || targetEntity == Entity.Null) {
+                        continue;
+                    }
+
+                    if (!colliderLookup.HasComponent(targetEntity) || !colliderLookup.HasComponent(projectileEntity) || !projectileComponentLookup.HasComponent(projectileEntity)) {
+                        continue;
+                    }
                     
-                var projectileData = projectileDataLookup[projectile];
+                    var targetCollider = colliderLookup[targetEntity];
+                    var targetColliderFilter = GetCollisionFilter(targetCollider);
+                    var projectileCollider = colliderLookup[projectileEntity];
+                    var projectileColliderFilter = GetCollisionFilter(projectileCollider);
 
-                switch (projectileData.projectileType) {
-                    case ProjectileType.BULLET: {
-                        HandleBulletProjectile(projectile, otherEntity);
-                        return;
+                    if (projectileColliderFilter != CollisionBelongsToLayer.Projectile) {
+                        continue;
+                    }
+                    
+                    if (targetColliderFilter == CollisionBelongsToLayer.Wall) {
+                        ecb.DestroyEntity(chunkIndex, projectileEntity);
+                        continue;
+                    }
+                    
+                    switch (triggerEvent.State) {
+                        case StatefulEventState.Enter: {
+                            
+                            #if UNITY_EDITOR
+                            Debug.Log($"Frame {frameCount} Entity {projectileEntity} => State:[{triggerEvent.State}] " +
+                                      $"vs {triggerEvent.GetOtherEntity(projectileEntity)}, " +
+                                      $"BodyIndices=({triggerEvent.BodyIndexA}, {triggerEvent.BodyIndexB}), " +
+                                      $"ColliderKeys=({triggerEvent.ColliderKeyA}, {triggerEvent.ColliderKeyB}) EntityFilter: {projectileColliderFilter}," +
+                                      $"HitFilter: {targetColliderFilter}");
+                            #endif
+                            
+                            if (enemyDataLookup.HasComponent(targetEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
+                                EnemyData enemyData = enemyDataLookup[targetEntity];
+                                ProjectileComponent projectileComponent = projectileComponentLookup[projectileEntity];
+                                ProjectileDataComponent projectileDataComponent = projectileDataLookup[projectileEntity];
+
+                                // Decrease piercing
+                                projectileDataComponent.piercingEnemyNumber -= 1;
+                                ecb.SetComponent(chunkIndex, projectileEntity, projectileDataComponent);
+
+                                // Decrease enemy health
+                                enemyData.health -= projectileComponent.BaseDamage;
+                                ecb.SetComponent(chunkIndex, targetEntity, enemyData);
+
+                                if (enemyData.health <= 0f) {
+                                    ecb.DestroyEntity(chunkIndex, targetEntity);
+                                    
+                                    // Increase Player XP
+                                    PlayerData playerData = playerDataLookup[playerEntity];
+                                    playerData.experience += 1;
+                                    ecb.SetComponent(chunkIndex, playerEntity, playerData);
+                                }
+
+                                if (projectileDataComponent.piercingEnemyNumber <= 0) {
+                                    ecb.DestroyEntity(chunkIndex, projectileEntity);
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
-            }
-
-            public void HandleBulletProjectile(Entity projectileEntity, Entity collidedEntity) {
-                if (enemyDataLookup.HasComponent(collidedEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
-                    var enemyData = enemyDataLookup[collidedEntity];
-                    var projectileComponent = projectileComponentLookup[projectileEntity];
-                    enemyData.health -= projectileComponent.BaseDamage;
-                    enemyDataLookup[collidedEntity] = enemyData;
-
-                    var projectileDataCheck = projectileDataLookup[projectileEntity];
-                    projectileDataCheck.piercingEnemyNumber -= 1;
-                    projectileDataLookup[projectileEntity] = projectileDataCheck;
-
-                    if (enemyData.health <= 0f) {
-                        ecb.DestroyEntity(0, collidedEntity);
-                        var playerData = playerDataLookup[playerEntity];
-                        playerData.experience += 1;
-                        playerDataLookup[playerEntity] = playerData;
-                    }
-
-                    if (projectileDataCheck.piercingEnemyNumber <= 0) {
-                        ecb.DestroyEntity(0, projectileEntity);
-                    }
-                }
-                else {
-                    ecb.DestroyEntity(0, collidedEntity);
-                    ecb.DestroyEntity(0, projectileEntity);
-                }
-            }
-
-            (Entity, Entity) GetEntityWithComponent<T>(Entity entityA, Entity entityB) where T : struct, IComponentData {
-                if (entityManager.HasComponent<T>(entityA)) {
-                    return (entityA, entityB);
-                }
-
-                if (entityManager.HasComponent<T>(entityB)) {
-                    return (entityB, entityA);
-                }
-
-                return (Entity.Null, Entity.Null);
-            }
-
-            void HandleProjectileCollision(Entity projectileEntity, Entity collidedEntity) {
-                if (enemyDataLookup.HasComponent(collidedEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
-                    var enemyData = enemyDataLookup[collidedEntity];
-                    var projectileData = projectileComponentLookup[projectileEntity];
-                    enemyData.health -= projectileData.BaseDamage;
-                    enemyDataLookup[collidedEntity] = enemyData;
-
-                    if (enemyData.health <= 0f) {
-                        ecb.DestroyEntity(0, collidedEntity);
-                        var playerData = playerDataLookup[playerEntity];
-                        playerData.experience += 1;
-                        playerDataLookup[playerEntity] = playerData;
-                    }
-
-                    ecb.DestroyEntity(0, projectileEntity);
-                    return;
-                }
-
-                ecb.DestroyEntity(0, collidedEntity);
-                ecb.DestroyEntity(0, projectileEntity);
             }
         }
     }
