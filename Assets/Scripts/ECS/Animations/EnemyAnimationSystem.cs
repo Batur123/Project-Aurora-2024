@@ -16,8 +16,6 @@ public partial struct SpriteEnemyAnimationSystem : ISystem
     }
 
     public void OnUpdate(ref SystemState state) {
-        return;
-        
         float dt = SystemAPI.Time.DeltaTime;
         foreach (var animRef in SystemAPI.Query<RefRW<AnimatorState>>().WithAll<EnemyAnimation>())
         {
@@ -43,7 +41,7 @@ public partial struct SpriteEnemyAnimationSystem : ISystem
                 float frameDuration;
                 frames = clips.WalkSprites;
                 frameDuration = clips.WalkFrameDuration;
-
+                Debug.Log("FRAME LENGTH" + frames.Length);
                 if (frames == null || frames.Length == 0)
                     continue;
 

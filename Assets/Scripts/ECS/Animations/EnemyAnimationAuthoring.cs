@@ -18,8 +18,8 @@ public class SpriteEnemyAnimationAuthoring : MonoBehaviour
 
             AddComponentObject(entity, new SpriteAnimationClips
             {
-                IdleSprites = authoring.walkSprites,
-                IdleFrameDuration = authoring.walkFrameDuration,
+                WalkSprites = authoring.walkSprites,
+                WalkFrameDuration = authoring.walkFrameDuration,
             });
 
             AddComponent(entity, new AnimatorState
@@ -28,7 +28,7 @@ public class SpriteEnemyAnimationAuthoring : MonoBehaviour
                 CurrentFrame = 0,
                 Timer = 0f
             });
-            AddComponent(entity, new EnemyAnimation() {});
+            AddComponent(entity, new EnemyAnimation{});
 
         }
     }
