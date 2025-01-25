@@ -200,27 +200,32 @@ namespace ECS {
         }
     }
 
-    [BurstCompile]
-    [UpdateAfter(typeof(PhysicsSimulationGroup))]
-    public partial struct PlayerProjectileLifeTimeSystem : ISystem
-    {
-        public void OnUpdate(ref SystemState state)
-        {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (projectileComponent, entity) in
-                     SystemAPI.Query<RefRW<ProjectileComponent>>()
-                         .WithEntityAccess())
-            {
-                projectileComponent.ValueRW.Lifetime -= SystemAPI.Time.DeltaTime;
-                if (projectileComponent.ValueRW.Lifetime <= 0)
-                {
-                    ecb.DestroyEntity(entity);
-                }
-            }
-
-            ecb.Playback(state.EntityManager);
-        }
-    }
+    //[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    //[UpdateAfter(typeof(RegularBulletTriggerSystem))]
+    //[BurstCompile]
+    //public partial struct PlayerProjectileLifeTimeSystem : ISystem
+    //{
+    //    public void OnUpdate(ref SystemState state)
+    //    {
+    //        var ecb = new EntityCommandBuffer(Allocator.Temp);
+    //        foreach (var (projectileComponent, entity) in
+    //                 SystemAPI.Query<RefRW<ProjectileComponent>>()
+    //                     .WithEntityAccess())
+    //        {
+    //            if (entity == Entity.Null || !state.EntityManager.HasComponent<ProjectileComponent>(entity)) {
+    //                continue;
+    //            }
+    //            
+    //            projectileComponent.ValueRW.Lifetime -= SystemAPI.Time.DeltaTime;
+    //            if (projectileComponent.ValueRW.Lifetime <= 0)
+    //            {
+    //                ecb.DestroyEntity(entity);
+    //            }
+    //        }
+//
+    //        ecb.Playback(state.EntityManager);
+    //    }
+    //}
 
     [BurstCompile]
     public partial struct ProcessProjectileSpawnerJob : IJobEntity {

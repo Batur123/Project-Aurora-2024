@@ -18,7 +18,7 @@ MonoBehaviour:
   damage: 1
   reloadTime: 8
   gunType: 2
-  attackRate: 100
+  attackRate: 10
   recoilAmount: 2
   spreadAmount: 500
   lastAttackTime: 0
