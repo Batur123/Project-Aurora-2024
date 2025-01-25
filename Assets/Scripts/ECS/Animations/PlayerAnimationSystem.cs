@@ -16,7 +16,6 @@ public partial struct SpriteAnimationSystem : ISystem
     }
 
     public void OnUpdate(ref SystemState state) {
-        return;
         float dt = SystemAPI.Time.DeltaTime;
 
         // Check if we're pressing any WASD key *this frame* (held down)

@@ -4,6 +4,7 @@ using System.Linq;
 using ECS;
 using ECS.Bakers;
 using ScriptableObjects;
+using TMPro;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
@@ -30,7 +31,9 @@ public class UIController : MonoBehaviour {
 
     public Dictionary<int, InventorySlotData> _inventorySlots = new();
 
-
+    public GameObject tooltipPanel; // Assign this via the Inspector
+    public TMP_Text tooltipText; // Assign this via the Inspector
+    
     private Image healthBarBackground;
     private Image healthBarForeground;
 
@@ -79,6 +82,16 @@ public class UIController : MonoBehaviour {
         if (entityManager == null) {
             entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         }
+    }
+    
+    private Vector2 ClampToScreen(Vector2 position, RectTransform tooltipRect) {
+        Vector2 screenBounds = new Vector2(Screen.width, Screen.height);
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+
+        float clampedX = Mathf.Clamp(position.x, tooltipSize.x / 2, screenBounds.x - tooltipSize.x / 2);
+        float clampedY = Mathf.Clamp(position.y, tooltipSize.y / 2, screenBounds.y - tooltipSize.y / 2);
+
+        return new Vector2(clampedX, clampedY);
     }
 
     private void LoadUI() {
@@ -371,6 +384,65 @@ public class UIController : MonoBehaviour {
         return item;
     }
 
+    public void ShowTooltip(Vector2 position, int slotIndex) {
+        Entity item = FindItemAtIndex(slotIndex);
+        if (item != Entity.Null) {
+            if (entityManager.HasComponent<WeaponData>(item)) {
+                WeaponData weaponData = entityManager.GetComponentData<WeaponData>(item);
+                string content = $"Damage: {weaponData.damage}\n" +
+                                 $"Accuracy: {weaponData.accuracy}\n" +
+                                 $"Attack Rate: {weaponData.attackRate}\n" +
+                                 $"Recoil Amount: {weaponData.recoilAmount}\n" +
+                                 $"Spread Amount: {weaponData.spreadAmount}\n" +
+                                 $"Bullets Per Shot: {weaponData.bulletsPerShot}";
+
+                DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(item);
+                if (!attachments.IsEmpty) {
+                    content += $"\nCurrent Attachments";
+                }
+                foreach (Child attachment in attachments) {
+                    if (entityManager.HasComponent<AttachmentComponent>(attachment.Value)) {
+                        AttachmentTypeComponent attachmentTypeComponent = entityManager.GetComponentData<AttachmentTypeComponent>(attachment.Value);
+                        content += $"\n{attachmentTypeComponent.attachmentType.ToString()}";
+                    }
+                }
+                tooltipText.text = content;
+                tooltipText.fontSize = 19;
+                tooltipPanel.SetActive(true);
+                RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+                tooltipRect.position = ClampToScreen(position, tooltipRect);
+            }
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+
+        if (!equippedGuns.IsEmpty && slotIndex is 1 or 2 or 3 or 4) {
+            Entity foundAttachment = FindItemAtIndexFromWeapon(equippedGuns[0].GunEntity, slotIndex);
+            if (foundAttachment != Entity.Null) {
+                var attachmentComponent = entityManager.GetComponentData<AttachmentComponent>(foundAttachment);
+                string content = $"Damage: {attachmentComponent.damage}\n" +
+                                 $"Accuracy: {attachmentComponent.accuracy}\n" +
+                                 $"Attack Rate: {attachmentComponent.attackRate}\n" +
+                                 $"Recoil Amount: {attachmentComponent.recoilAmount}\n" +
+                                 $"Spread Amount: {attachmentComponent.spreadAmount}\n" +
+                                 $"Bullets Per Shot: {attachmentComponent.bulletsPerShot}";
+                tooltipText.text = content;
+                tooltipText.fontSize = 19;
+                tooltipPanel.SetActive(true);
+                RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+                tooltipRect.position = ClampToScreen(position, tooltipRect);
+            }
+        }
+        
+    }
+
+    public void HideTooltip() {
+        tooltipPanel.SetActive(false);
+    }
+    
     public void DropItemAtIndexToGround(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);

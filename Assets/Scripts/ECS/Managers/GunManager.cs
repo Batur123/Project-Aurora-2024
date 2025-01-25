@@ -23,28 +23,65 @@ namespace ECS {
         public bool isReloading;
     }
 
-    public struct DurabilityComponent : IComponentData
-    {
-        public int value;
+    public struct BaseWeaponData : IComponentData {
+        public float damage;
+        public float accuracy;
+        public float attackRate;
+        public float recoilAmount;
+        public float spreadAmount;
+        public float lastAttackTime;
+        public int bulletsPerShot;
+        public int capacity;
+        public float reloadSpeed;
     }
-
-    public struct DamageComponent : IComponentData
-    {
-        public float value;
-    }
-
-    public struct ReloadTimeComponent : IComponentData
-    {
-        public float time;
-    }
-
+    
     public struct WeaponData : IComponentData {
+        public float damage;
+        public float accuracy;
         public float attackRate; // Attacks per second
         public float recoilAmount; // Recoil intensity
         public float spreadAmount; // Spread of bullets
         public float lastAttackTime; // Time of last attack
         public int bulletsPerShot;
+        public int capacity;
+        public float reloadSpeed;
     }
+    
+    public struct AttachmentTag : IComponentData {}
+
+    public struct AttachmentComponent : IComponentData {
+        public float damage;
+        public float accuracy;
+        public float attackRate; // Attacks per second
+        public float recoilAmount; // Recoil intensity
+        public float spreadAmount; // Spread of bullets
+        public float lastAttackTime; // Time of last attack
+        public int bulletsPerShot;
+        public int capacity;
+        public float reloadSpeed;
+    }
+
+    public struct AttachmentTypeComponent : IComponentData {
+        public AttachmentType attachmentType;
+    }
+    
+    public struct GrenadeComponent : IComponentData
+    {
+        public float3 StartPosition; // Where the grenade starts
+        public float3 TargetPosition; // Where the grenade should land
+        public float PeakHeight;
+        public float ThrowTime; // Total time for the throw
+        public float ElapsedTime; // Time elapsed since the throw began
+        public float FuseDuration;
+        public float ExplosionRadius;
+    }
+
+    public struct ExplosionTag : IComponentData {
+        public float lifeTime;
+        public float elapsedExplosionTime;
+    }
+
+    public struct StartFuseCountdown : IComponentData {}
 
     public struct MuzzlePoint : IComponentData {
         public float3 position;  // Position of the muzzle point relative to the weapon
@@ -65,15 +102,7 @@ namespace ECS {
             entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             Debug.Assert(entityManager != null, "EntityManager is null! Ensure the default world is initialized.");
         }
-        
-        
-        void Start()
-        {
-            //foreach (var gunTemplate in gunTemplates) {
-            //    CreateGunEntity(gunTemplate);
-            //}
-        }
-
+ 
         public void CreateGunEntity(GunTemplate gunTemplate) {
             var prefabEntity = GetPrefabEntityForGun(gunTemplate);
 
@@ -96,9 +125,6 @@ namespace ECS {
 
             entityManager.AddComponent<GunTypeComponent>(gunEntity);
             entityManager.AddComponent<AmmoComponent>(gunEntity);
-            entityManager.AddComponent<DurabilityComponent>(gunEntity);
-            entityManager.AddComponent<DamageComponent>(gunEntity);
-            entityManager.AddComponent<ReloadTimeComponent>(gunEntity);
             entityManager.AddComponent<WeaponData>(gunEntity);
             entityManager.AddComponent<MuzzlePoint>(gunEntity);
             entityManager.AddComponent<ScopePointTransform>(gunEntity);
@@ -111,9 +137,6 @@ namespace ECS {
                 currentAmmo = gunTemplate.ammoCapacity,
                 isReloading = false,
             });
-            entityManager.SetComponentData(gunEntity, new DurabilityComponent { value = gunTemplate.durability });
-            entityManager.SetComponentData(gunEntity, new DamageComponent { value = gunTemplate.damage });
-            entityManager.SetComponentData(gunEntity, new ReloadTimeComponent { time = gunTemplate.reloadTime });
             entityManager.SetComponentData(gunEntity, new WeaponData {
                 attackRate = gunTemplate.attackRate,
                 recoilAmount = gunTemplate.recoilAmount,

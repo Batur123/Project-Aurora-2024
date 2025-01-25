@@ -7,35 +7,6 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace ECS {
-    public struct AttachmentTag : IComponentData {}
-
-    public struct StockAttachmentComponent : IComponentData {
-        public float recoilModifier;
-        public float accuracyModifier;
-    }
-
-    public struct BarrelAttachmentComponent : IComponentData {
-        public float damageModifier;
-        public float accuracyModifier;
-    }
-
-    public struct MagazineAttachmentComponent : IComponentData {
-        public int capacityModifier;
-        public float reloadSpeedModifier;
-    }
-
-    public struct ScopeAttachmentComponent : IComponentData {
-        public float accuracyModifier;
-    }
-
-    public struct AmmunitionAttachmentComponent : IComponentData {
-        public float damageModifier;
-    }
-    
-    public struct AttachmentTypeComponent : IComponentData {
-        public AttachmentType attachmentType;
-    }
-
     public struct GunAttachment : IBufferElementData
     {
         public Entity AttachmentEntity;
@@ -74,36 +45,36 @@ namespace ECS {
 
             switch (attachmentTemplate.attachmentType) {
                 case AttachmentType.Stock:
-                    entityManager.AddComponentData(attachmentEntity, new StockAttachmentComponent {
-                        recoilModifier = attachmentTemplate.recoilModifier,
-                        accuracyModifier = attachmentTemplate.accuracyModifier
+                    entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
+                        recoilAmount = attachmentTemplate.recoilModifier,
+                        accuracy = attachmentTemplate.accuracyModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(-0.5f, 0, 0);
                     break;
                 case AttachmentType.Barrel:
-                    entityManager.AddComponentData(attachmentEntity, new BarrelAttachmentComponent {
-                        damageModifier = attachmentTemplate.damageModifier,
-                        accuracyModifier = attachmentTemplate.accuracyModifier
+                    entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
+                        damage = attachmentTemplate.damageModifier,
+                        accuracy= attachmentTemplate.accuracyModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(0.5f, 0, 0);
 
                     break;
                 case AttachmentType.Magazine:
-                    entityManager.AddComponentData(attachmentEntity, new MagazineAttachmentComponent {
-                        capacityModifier = attachmentTemplate.capacityModifier,
-                        reloadSpeedModifier = attachmentTemplate.reloadSpeedModifier
+                    entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
+                        capacity = attachmentTemplate.capacityModifier,
+                        reloadSpeed = attachmentTemplate.reloadSpeedModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(0, -0.3f, 0);
                     break;
                 case AttachmentType.Scope:
-                    entityManager.AddComponentData(attachmentEntity, new ScopeAttachmentComponent {
-                        accuracyModifier = attachmentTemplate.accuracyModifier
+                    entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
+                        accuracy = attachmentTemplate.accuracyModifier
                     });
                     //.transform.localPosition = new Vector3(0, 0.3f, 0);
                     break;
                 case AttachmentType.Ammunition:
-                    entityManager.AddComponentData(attachmentEntity, new AmmunitionAttachmentComponent {
-                        damageModifier = attachmentTemplate.damageModifier
+                    entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
+                        damage = attachmentTemplate.damageModifier
                     });
                     break;
             }
@@ -124,21 +95,21 @@ namespace ECS {
         
         public void AttachAttachmentToGun(Entity gunEntity, Entity attachmentEntity)
         {
-            var buffer = entityManager.GetBuffer<GunAttachment>(gunEntity);
-            buffer.Add(new GunAttachment { AttachmentEntity = attachmentEntity });
-
-            if (entityManager.HasComponent<ScopeAttachmentComponent>(attachmentEntity))
-            {
-                
-            }
-            
-            if (entityManager.HasComponent<BarrelAttachmentComponent>(attachmentEntity))
-            {
-                var barrel = entityManager.GetComponentData<BarrelAttachmentComponent>(attachmentEntity);
-                var damageComponent = entityManager.GetComponentData<DamageComponent>(gunEntity);
-                damageComponent.value += barrel.damageModifier;
-                entityManager.SetComponentData(gunEntity, damageComponent);
-            }
+            //var buffer = entityManager.GetBuffer<GunAttachment>(gunEntity);
+            //buffer.Add(new GunAttachment { AttachmentEntity = attachmentEntity });
+//
+            //if (entityManager.HasComponent<AttachmentComponent>(attachmentEntity))
+            //{
+            //    
+            //}
+            //
+            //if (entityManager.HasComponent<AttachmentComponent>(attachmentEntity))
+            //{
+            //    var barrel = entityManager.GetComponentData<AttachmentComponent>(attachmentEntity);
+            //    var damageComponent = entityManager.GetComponentData<DamageComponent>(gunEntity);
+            //    damageComponent.value += barrel.damageModifier;
+            //    entityManager.SetComponentData(gunEntity, damageComponent);
+            //}
         }
         
         private Entity GetPrefabEntityForAttachment(AttachmentTemplate attachmentTemplate) {

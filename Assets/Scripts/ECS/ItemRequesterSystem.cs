@@ -202,10 +202,8 @@ namespace ECS {
                 ecb.AddComponent<GunTag>(gunEntity);
                 ecb.AddComponent<GunTypeComponent>(gunEntity);
                 ecb.AddComponent<AmmoComponent>(gunEntity);
-                ecb.AddComponent<DurabilityComponent>(gunEntity);
-                ecb.AddComponent<DamageComponent>(gunEntity);
-                ecb.AddComponent<ReloadTimeComponent>(gunEntity);
                 ecb.AddComponent<WeaponData>(gunEntity);
+                ecb.AddComponent<BaseWeaponData>(gunEntity);
                 ecb.AddComponent<MuzzlePointTransform>(gunEntity);
                 ecb.AddComponent<ScopePointTransform>(gunEntity);
                 ecb.AddComponent<Item>(gunEntity);
@@ -215,10 +213,18 @@ namespace ECS {
                     currentAmmo = gunBlob.ammoCapacity,
                     isReloading = false,
                 });
-                ecb.SetComponent(gunEntity, new DurabilityComponent { value = gunBlob.durability });
-                ecb.SetComponent(gunEntity, new DamageComponent { value = gunBlob.damage });
-                ecb.SetComponent(gunEntity, new ReloadTimeComponent { time = gunBlob.reloadTime });
+                ecb.SetComponent(gunEntity, new BaseWeaponData {
+                    damage = gunBlob.damage,
+                    accuracy = 0f,
+                    attackRate = gunBlob.attackRate,
+                    recoilAmount = gunBlob.recoilAmount,
+                    spreadAmount = gunBlob.spreadAmount,
+                    lastAttackTime = gunBlob.lastAttackTime,
+                    bulletsPerShot = gunBlob.bulletsPerShot
+                });
                 ecb.SetComponent(gunEntity, new WeaponData {
+                    damage = gunBlob.damage,
+                    accuracy = 0f,
                     attackRate = gunBlob.attackRate,
                     recoilAmount = gunBlob.recoilAmount,
                     spreadAmount = gunBlob.spreadAmount,
@@ -248,39 +254,47 @@ namespace ECS {
                 // Spawn Base Scope that has +0 values
                 Entity baseScopeEntity = attachmentLibrarySystemRef.GetDescriptor(AttachmentType.Scope);
                 if (baseScopeEntity != Entity.Null) {
-                    var scopePrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseScopeEntity);
-                    Entity attachmentEntity = ecb.Instantiate(scopePrefab.prefab);
-                    ecb.SetName(attachmentEntity, AttachmentType.Scope.ToString());
-                    ecb.AddComponent(attachmentEntity, new ScopeAttachmentComponent() {
-                        accuracyModifier = 5,
-                    });
+                    //var scopePrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseScopeEntity);
+                    //Entity attachmentEntity = ecb.Instantiate(scopePrefab.prefab);
                     
-                    ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
-                        scopePointTransform.position,
-                        scopePointTransform.rotation,
-                        1.0f
-                    ));
+                    // Add Scope
+                    AddAttachment(
+                        ecb, ref state, gunEntity, AttachmentType.Scope, attachmentLibrarySystemRef,
+                        scopePointTransform.position, scopePointTransform.rotation,
+                        new AttachmentComponent { accuracy = 5f }
+                    );
+                    
+                   //ecb.SetName(attachmentEntity, AttachmentType.Scope.ToString());
+                   //ecb.AddComponent(attachmentEntity, new AttachmentComponent {
+                   //    accuracyModifier = 5,
+                   //});
+                   //
+                   //ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                   //    scopePointTransform.position,
+                   //    scopePointTransform.rotation,
+                   //    1.0f
+                   //));
 
-                    ecb.AddComponent(attachmentEntity, new AttachmentTag());
-                    ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
-                        attachmentType = AttachmentType.Scope
-                    });
-                    ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
-                    ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
-                    ecb.AddComponent<Item>(attachmentEntity);
-                    ecb.SetComponent(attachmentEntity, new Item {
-                        slot = -1,
-                        onGround = true,
-                        isEquipped = false,
-                        isStackable = false,
-                        quantity = 1
-                    });
-                    //spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
-                    
-                    if (!state.EntityManager.HasComponent<Child>(gunEntity))
-                    {
-                        ecb.AddBuffer<Child>(gunEntity);
-                    }
+                   //ecb.AddComponent(attachmentEntity, new AttachmentTag());
+                   //ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
+                   //    attachmentType = AttachmentType.Scope
+                   //});
+                   //ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
+                   //ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
+                   //ecb.AddComponent<Item>(attachmentEntity);
+                   //ecb.SetComponent(attachmentEntity, new Item {
+                   //    slot = -1,
+                   //    onGround = true,
+                   //    isEquipped = false,
+                   //    isStackable = false,
+                   //    quantity = 1
+                   //});
+                   ////spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
+                   //
+                   //if (!state.EntityManager.HasComponent<Child>(gunEntity))
+                   //{
+                   //    ecb.AddBuffer<Child>(gunEntity);
+                   //}
                 }
                 
                 Entity baseBarrelEntity = attachmentLibrarySystemRef.GetDescriptor(AttachmentType.Barrel);
@@ -288,8 +302,8 @@ namespace ECS {
                     var barrelPrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseBarrelEntity);
                     Entity attachmentEntity = ecb.Instantiate(barrelPrefab.prefab);
                     ecb.SetName(attachmentEntity, AttachmentType.Barrel.ToString());
-                    ecb.AddComponent(attachmentEntity, new BarrelAttachmentComponent() {
-                        accuracyModifier = 5,
+                    ecb.AddComponent(attachmentEntity, new AttachmentComponent {
+                        accuracy = 5f,
                     });
                     
                     ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
@@ -324,6 +338,48 @@ namespace ECS {
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+        }
+        
+        public void AddAttachment(
+            EntityCommandBuffer ecb, ref SystemState state, Entity gunEntity, 
+            AttachmentType attachmentType, AttachmentLibrarySystem attachmentLibrarySystemRef, 
+            float3 position, quaternion rotation, AttachmentComponent attachmentComponent) 
+        {
+            Entity descriptorEntity = attachmentLibrarySystemRef.GetDescriptor(attachmentType);
+            if (descriptorEntity == Entity.Null) {
+                return;
+            }
+
+            var prefab = state.EntityManager.GetComponentData<BuiltPrefab>(descriptorEntity);
+            Entity attachmentEntity = ecb.Instantiate(prefab.prefab);
+            ecb.SetName(attachmentEntity, attachmentType.ToString());
+            ecb.AddComponent(attachmentEntity, attachmentComponent);
+                    
+            ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                position,
+                rotation,
+                1.0f
+            ));
+
+            ecb.AddComponent(attachmentEntity, new AttachmentTag());
+            ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
+                attachmentType = attachmentType
+            });
+            ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
+            ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
+            ecb.AddComponent<Item>(attachmentEntity);
+            ecb.SetComponent(attachmentEntity, new Item {
+                slot = -1,
+                onGround = true,
+                isEquipped = false,
+                isStackable = false,
+                quantity = 1
+            });
+                    
+            if (!state.EntityManager.HasComponent<Child>(gunEntity))
+            {
+                ecb.AddBuffer<Child>(gunEntity);
+            }
         }
     }
 }

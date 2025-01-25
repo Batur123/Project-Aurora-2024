@@ -16,6 +16,8 @@ namespace ECS {
         Projectile = 1 << 2,
         Wall = 1 << 3,
         GunEntity = 1 << 4,
+        AttachmentEntity = 1 << 5,
+        Explosion = 1 << 6,
     }
 
     public struct WaveManager : IComponentData {
@@ -55,6 +57,8 @@ namespace ECS {
     // Enemy-spawner specific data
     public struct EntityData : IComponentData {
         public Entity prefab;
+        public Entity grenadePrefab;
+        public Entity grenadeExplosionPrefab;
     }
 
     public struct EnemyData : IComponentData {
