@@ -96,21 +96,6 @@ namespace ECS {
             }
         }
     }
-    
-    // [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    // public partial struct PlayerAnimationSystem : ISystem
-    // {
-    //     public void OnUpdate(ref SystemState state)
-    //     {
-    //         foreach (var (animationParams, localTransform) in SystemAPI.Query<RefRW<AnimationParameters>, RefRO<LocalTransform>>())
-    //         {
-    //             float speed = math.length(localTransform.ValueRO.Position.xy);
-    //             animationParams.ValueRW.Speed = speed;
-    //             animationParams.ValueRW.Side = speed > 0 ? 1 : -1;
-    //             animationParams.ValueRW.HoldItem = false; // Example logic
-    //         }
-    //     }
-    // }
 
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct PlayerMovementSystem : ISystem {
@@ -157,32 +142,32 @@ namespace ECS {
         }
     }
 
-    //[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-    //[UpdateAfter(typeof(RegularBulletTriggerSystem))]
-    //[BurstCompile]
-    //public partial struct PlayerProjectileLifeTimeSystem : ISystem
-    //{
-    //    public void OnUpdate(ref SystemState state)
-    //    {
-    //        var ecb = new EntityCommandBuffer(Allocator.Temp);
-    //        foreach (var (projectileComponent, entity) in
-    //                 SystemAPI.Query<RefRW<ProjectileComponent>>()
-    //                     .WithEntityAccess())
-    //        {
-    //            if (entity == Entity.Null || !state.EntityManager.HasComponent<ProjectileComponent>(entity)) {
-    //                continue;
-    //            }
-    //            
-    //            projectileComponent.ValueRW.Lifetime -= SystemAPI.Time.DeltaTime;
-    //            if (projectileComponent.ValueRW.Lifetime <= 0)
-    //            {
-    //                ecb.DestroyEntity(entity);
-    //            }
-    //        }
-//
-    //        ecb.Playback(state.EntityManager);
-    //    }
-    //}
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(RegularBulletTriggerSystem))]
+    [BurstCompile]
+    public partial struct PlayerProjectileLifeTimeSystem : ISystem
+    {
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            foreach (var (projectileComponent, entity) in
+                     SystemAPI.Query<RefRW<ProjectileComponent>>()
+                         .WithEntityAccess())
+            {
+                if (entity == Entity.Null || !state.EntityManager.HasComponent<ProjectileComponent>(entity)) {
+                    continue;
+                }
+                
+                projectileComponent.ValueRW.Lifetime -= SystemAPI.Time.DeltaTime;
+                if (projectileComponent.ValueRW.Lifetime <= 0)
+                {
+                    ecb.DestroyEntity(entity);
+                }
+            }
+
+            ecb.Playback(state.EntityManager);
+        }
+    }
 
     [BurstCompile]
     public partial struct ProcessProjectileSpawnerJob : IJobEntity {
