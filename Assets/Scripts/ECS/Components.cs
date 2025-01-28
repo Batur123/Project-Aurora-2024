@@ -127,14 +127,13 @@ namespace ECS {
     public enum ProjectileType {
         NONE,
         BULLET,
-        GRENADE,
+        EXPLOSIVE_GRENADE,
         EXPLOSIVE_BULLET,
         POISON_BULLET,
         ELECTRIC_BULLET,
     }
     
     public struct ProjectileDataComponent : IComponentData {
-        public ProjectileType projectileType;
         public int piercingEnemyNumber;
     }
 
@@ -160,11 +159,6 @@ namespace ECS {
     }
     
     public struct InventoryOpen : IComponentData {}
-    
-    public struct CollisionTimer : IComponentData
-    {
-        public float TimeElapsed; // Tracks how long the collision has lasted
-    }
 
     public struct Item : IComponentData {
         public int slot;
@@ -177,4 +171,7 @@ namespace ECS {
     public struct Inventory : IBufferElementData {
         public Entity itemEntity;
     }
+    
+    public struct DisableSpriteRendererRequest : IComponentData { }
+    public struct PickupRequest : IComponentData { }
 }

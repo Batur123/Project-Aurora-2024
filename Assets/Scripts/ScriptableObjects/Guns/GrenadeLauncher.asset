@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e3392e2b4cd491fa27a19c7f98234b8, type: 3}
   m_Name: GrenadeLauncher
   m_EditorClassIdentifier: 
-  gunName: Grenade Launcher
-  ammoCapacity: 500
-  durability: 8
-  damage: 15
-  reloadTime: 8
+  gunName: Thumper Grenade Launcher
   gunType: 3
-  attackRate: 10
+  projectileType: 2
+  ammoCapacity: 500
+  damage: 15
+  accuracy: 1
+  attackSpeed: 5
   recoilAmount: 2
-  spreadAmount: 4
-  lastAttackTime: 0
-  bulletsPerShot: 1
+  spreadAmount: 10
+  bulletsPerShot: 5
+  reloadSpeed: 1
+  piercingBulletsPerShot: 1

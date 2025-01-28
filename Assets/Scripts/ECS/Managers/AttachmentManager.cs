@@ -41,34 +41,31 @@ namespace ECS {
             
             var attachmentObject = new GameObject(attachmentTemplate.attachmentName);
             var spriteRenderer = attachmentObject.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
+            //spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
 
             switch (attachmentTemplate.attachmentType) {
                 case AttachmentType.Stock:
                     entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
                         recoilAmount = attachmentTemplate.recoilModifier,
-                        accuracy = attachmentTemplate.accuracyModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(-0.5f, 0, 0);
                     break;
                 case AttachmentType.Barrel:
                     entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
                         damage = attachmentTemplate.damageModifier,
-                        accuracy= attachmentTemplate.accuracyModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(0.5f, 0, 0);
 
                     break;
                 case AttachmentType.Magazine:
                     entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
-                        capacity = attachmentTemplate.capacityModifier,
+                        ammoCapacity = attachmentTemplate.capacityModifier,
                         reloadSpeed = attachmentTemplate.reloadSpeedModifier
                     });
                     //attachmentObject.transform.localPosition = new Vector3(0, -0.3f, 0);
                     break;
                 case AttachmentType.Scope:
                     entityManager.AddComponentData(attachmentEntity, new AttachmentComponent {
-                        accuracy = attachmentTemplate.accuracyModifier
                     });
                     //.transform.localPosition = new Vector3(0, 0.3f, 0);
                     break;

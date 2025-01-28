@@ -11,11 +11,6 @@ using Random = UnityEngine.Random;
 namespace ECS {
     public struct DroppedItemTag : IComponentData {}
     public struct GunTag : IComponentData {}
-    
-    public struct GunTypeComponent : IComponentData
-    {
-        public GunType type;
-    }
 
     public struct AmmoComponent : IComponentData {
         public int currentAmmo;
@@ -23,46 +18,111 @@ namespace ECS {
         public bool isReloading;
     }
 
+    // Base Stats
     public struct BaseWeaponData : IComponentData {
+        public int ammoCapacity;
         public float damage;
-        public float accuracy;
-        public float attackRate;
+        public float attackSpeed;
         public float recoilAmount;
         public float spreadAmount;
-        public float lastAttackTime;
         public int bulletsPerShot;
-        public int capacity;
         public float reloadSpeed;
+        public int piercingBulletsPerShot;
     }
     
+    // Calculated Stats after base + upgrades
     public struct WeaponData : IComponentData {
+        public FixedString64Bytes weaponName;
+        public int ammoCapacity;
         public float damage;
-        public float accuracy;
-        public float attackRate; // Attacks per second
-        public float recoilAmount; // Recoil intensity
-        public float spreadAmount; // Spread of bullets
-        public float lastAttackTime; // Time of last attack
+        public float attackSpeed;
+        public float recoilAmount;
+        public float spreadAmount;
         public int bulletsPerShot;
-        public int capacity;
         public float reloadSpeed;
+        public int piercingBulletsPerShot;
+    }
+
+    // Attachment Stats that calculates
+    public struct AttachmentComponent : IComponentData {
+        public FixedString64Bytes attachmentName;
+        public int ammoCapacity;
+        public float damage;
+        public float attackSpeed;
+        public float recoilAmount;
+        public float spreadAmount;
+        public int bulletsPerShot;
+        public float reloadSpeed;
+        public int piercingBulletsPerShot;
     }
     
-    public struct AttachmentTag : IComponentData {}
-
-    public struct AttachmentComponent : IComponentData {
+    // Blob data from initial scriptable object to put into BaseStats
+    public struct GunTemplateBlob
+    {
+        public int ammoCapacity;
         public float damage;
-        public float accuracy;
-        public float attackRate; // Attacks per second
-        public float recoilAmount; // Recoil intensity
-        public float spreadAmount; // Spread of bullets
-        public float lastAttackTime; // Time of last attack
+        public float attackSpeed;
+        public float recoilAmount;
+        public float spreadAmount;
         public int bulletsPerShot;
-        public int capacity;
         public float reloadSpeed;
+        public int piercingBulletsPerShot;
     }
+    
+    public struct AttachmentTemplateBlob
+    {
+        public float damageModifier;
+        public float reloadSpeedModifier;
+        public float accuracyModifier;
+        public float recoilModifier;
+        public int capacityModifier;
+    }
+    
+    public struct MuzzlePointTransform : IComponentData
+    {
+        public float3 position;   // Position of the muzzle point
+        public quaternion rotation; // Rotation of the muzzle point
+        public float3 scale;      // Scale of the muzzle point
+        public float3 offset;
+        public float3 boundOffset;
+    }
+
+    public struct ScopePointTransform : IComponentData
+    {
+        public float3 position;   // Position of the scope point
+        public quaternion rotation; // Rotation of the scope point
+        public float3 scale;      // Scale of the scope point
+        public float3 offset;
+        public float3 boundOffset;
+    }
+
+    public struct GunBlobReference : IComponentData
+    {
+        public BlobAssetReference<GunTemplateBlob> templateBlob;
+    }
+
+    public struct AttachmentBlobReference : IComponentData
+    {
+        public BlobAssetReference<AttachmentTemplateBlob> templateBlob;
+    }
+
+    public struct AttachmentTag : IComponentData {}
 
     public struct AttachmentTypeComponent : IComponentData {
         public AttachmentType attachmentType;
+        public int variantId;
+        public float lootWeight;
+    }
+
+    public struct GunTypeComponent : IComponentData
+    {
+        public GunType gunType;
+        public int variantId;
+        public float lootWeight;
+    }
+    
+    public struct WeaponProjectileTypeComponent : IComponentData {
+        public ProjectileType projectileType;
     }
     
     public struct GrenadeComponent : IComponentData
@@ -74,6 +134,7 @@ namespace ECS {
         public float ElapsedTime; // Time elapsed since the throw began
         public float FuseDuration;
         public float ExplosionRadius;
+        public float3 RandomizedTarget;
     }
 
     public struct ExplosionTag : IComponentData {
@@ -131,17 +192,19 @@ namespace ECS {
 
             entityManager.SetName(gunEntity, gunTemplate.gunName);
 
-            entityManager.SetComponentData(gunEntity, new GunTypeComponent { type = gunTypeComponent.type });
+            entityManager.SetComponentData(gunEntity, new GunTypeComponent {
+                gunType = gunTypeComponent.gunType,
+                variantId = 0,
+            });
             entityManager.SetComponentData(gunEntity, new AmmoComponent {
                 capacity = gunTemplate.ammoCapacity, 
                 currentAmmo = gunTemplate.ammoCapacity,
                 isReloading = false,
             });
             entityManager.SetComponentData(gunEntity, new WeaponData {
-                attackRate = gunTemplate.attackRate,
+                attackSpeed = gunTemplate.attackSpeed,
                 recoilAmount = gunTemplate.recoilAmount,
                 spreadAmount = gunTemplate.spreadAmount,
-                lastAttackTime = 0f,
                 bulletsPerShot = gunTemplate.bulletsPerShot
             });
 
@@ -179,7 +242,7 @@ namespace ECS {
             using (var entities = entityQuery.ToEntityArray(Allocator.TempJob)) {
                 foreach (var entity in entities) {
                     var gunTypeComponent = entityManager.GetComponentData<GunTypeComponent>(entity);
-                    if (gunTypeComponent.type == gunTemplate.gunType) {
+                    if (gunTypeComponent.gunType == gunTemplate.gunType) {
                         prefabEntity = entity;
                         break;
                     }

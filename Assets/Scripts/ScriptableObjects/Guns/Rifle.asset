@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e3392e2b4cd491fa27a19c7f98234b8, type: 3}
   m_Name: Rifle
   m_EditorClassIdentifier: 
-  gunName: Rifle
-  ammoCapacity: 15
-  durability: 8
-  damage: 1
-  reloadTime: 8
+  gunName: M4A4-1
   gunType: 2
-  attackRate: 10
+  projectileType: 1
+  ammoCapacity: 15
+  damage: 1
+  accuracy: 1
+  attackSpeed: 15
   recoilAmount: 2
   spreadAmount: 4
-  lastAttackTime: 0
   bulletsPerShot: 1
+  reloadSpeed: 1
+  piercingBulletsPerShot: 2

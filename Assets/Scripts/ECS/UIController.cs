@@ -31,9 +31,21 @@ public class UIController : MonoBehaviour {
 
     public Dictionary<int, InventorySlotData> _inventorySlots = new();
 
-    public GameObject tooltipPanel; // Assign this via the Inspector
-    public TMP_Text tooltipText; // Assign this via the Inspector
-    
+    public GameObject tooltipPanel;
+    public TMP_Text weaponName;
+    public TMP_Text tierModifier;
+    public TMP_Text damageModifier;
+    public TMP_Text attackSpeedModifier;
+    public TMP_Text recoilModifier;
+    public TMP_Text spreadModifier;
+    public TMP_Text reloadSpeedModifier;
+    public TMP_Text projectilePerShotModifier;
+    public TMP_Text ammoCapacityModifier;
+    public TMP_Text bonusModifier_1;
+    public TMP_Text bonusModifier_2;
+    public TMP_Text bonusModifier_3;
+
+
     private Image healthBarBackground;
     private Image healthBarForeground;
 
@@ -82,16 +94,6 @@ public class UIController : MonoBehaviour {
         if (entityManager == null) {
             entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
         }
-    }
-    
-    private Vector2 ClampToScreen(Vector2 position, RectTransform tooltipRect) {
-        Vector2 screenBounds = new Vector2(Screen.width, Screen.height);
-        Vector2 tooltipSize = tooltipRect.sizeDelta;
-
-        float clampedX = Mathf.Clamp(position.x, tooltipSize.x / 2, screenBounds.x - tooltipSize.x / 2);
-        float clampedY = Mathf.Clamp(position.y, tooltipSize.y / 2, screenBounds.y - tooltipSize.y / 2);
-
-        return new Vector2(clampedX, clampedY);
     }
 
     private void LoadUI() {
@@ -237,7 +239,7 @@ public class UIController : MonoBehaviour {
 
     public void RenderItem(int index, Sprite itemImage, SlotType slotType, string itemStats) {
         if (!_inventorySlots.TryGetValue(index, out var foundSlotItem)) {
-            Debug.Log("[RenderItem]: "+ index + " not found");
+            Debug.Log("[RenderItem]: " + index + " not found");
             return;
         }
 
@@ -285,7 +287,7 @@ public class UIController : MonoBehaviour {
 
     public void SwapItems(int index1, int index2) {
         Debug.Log($"Attempting to swap items in Slot {index1} and Slot {index2}");
-        
+
         if (_inventorySlots.TryGetValue(index1, out var slotObj1) &&
             _inventorySlots.TryGetValue(index2, out var slotObj2)) {
 
@@ -305,12 +307,12 @@ public class UIController : MonoBehaviour {
             Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
             PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
             Entity player = playerSingleton.PlayerEntity;
-            
+
             EntityQuery itemQuery = entityManager.CreateEntityQuery(typeof(Item));
 
             Entity entity1 = Entity.Null;
             Entity entity2 = Entity.Null;
-            
+
             NativeArray<Entity> allItemEntities = itemQuery.ToEntityArray(Allocator.Temp);
             foreach (Entity currentEntity in allItemEntities) {
                 if (!entityManager.HasComponent<Item>(currentEntity)) continue;
@@ -329,6 +331,7 @@ public class UIController : MonoBehaviour {
                     break;
                 }
             }
+
             allItemEntities.Dispose();
 
             if (entity1 != Entity.Null && entity2 != Entity.Null) {
@@ -351,7 +354,7 @@ public class UIController : MonoBehaviour {
 
     public Entity FindItemAtIndexFromWeapon(Entity weaponEntity, int slotIndex) {
         Entity item = Entity.Null;
-        
+
         DynamicBuffer<Child> attachmentsBuffer = entityManager.GetBuffer<Child>(weaponEntity);
         foreach (Child attachment in attachmentsBuffer) {
             if (entityManager.HasComponent<Item>(attachment.Value)) {
@@ -365,14 +368,14 @@ public class UIController : MonoBehaviour {
 
         return item;
     }
-    
+
     public Entity FindItemAtIndex(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
         Entity item = Entity.Null;
-        
+
         for (int i = 0; i < inventoryBuffer.Length; i++) {
             Item itemData = entityManager.GetComponentData<Item>(inventoryBuffer[i].itemEntity);
             if (itemData.slot == slotIndex) {
@@ -384,34 +387,42 @@ public class UIController : MonoBehaviour {
         return item;
     }
 
+    private Vector2 ClampToScreen(Vector2 position, RectTransform tooltipRect) {
+        Vector2 screenBounds = new Vector2(Screen.width, Screen.height);
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+
+        float clampedX = Mathf.Clamp(position.x, tooltipSize.x / 2, screenBounds.x - tooltipSize.x / 2);
+        float clampedY = Mathf.Clamp(position.y, tooltipSize.y / 2, screenBounds.y - tooltipSize.y / 2);
+
+        return new Vector2(clampedX, clampedY);
+    }
+
     public void ShowTooltip(Vector2 position, int slotIndex) {
         Entity item = FindItemAtIndex(slotIndex);
         if (item != Entity.Null) {
             if (entityManager.HasComponent<WeaponData>(item)) {
                 WeaponData weaponData = entityManager.GetComponentData<WeaponData>(item);
-                string content = $"Damage: {weaponData.damage}\n" +
-                                 $"Accuracy: {weaponData.accuracy}\n" +
-                                 $"Attack Rate: {weaponData.attackRate}\n" +
-                                 $"Recoil Amount: {weaponData.recoilAmount}\n" +
-                                 $"Spread Amount: {weaponData.spreadAmount}\n" +
-                                 $"Bullets Per Shot: {weaponData.bulletsPerShot}";
+                
+                weaponName.text = weaponData.weaponName.ToString();
+                SetupWeaponTooltip(weaponData);
 
                 DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(item);
                 if (!attachments.IsEmpty) {
-                    content += $"\nCurrent Attachments";
+                    //content += $"\nCurrent Attachments";
                 }
+
                 foreach (Child attachment in attachments) {
                     if (entityManager.HasComponent<AttachmentComponent>(attachment.Value)) {
                         AttachmentTypeComponent attachmentTypeComponent = entityManager.GetComponentData<AttachmentTypeComponent>(attachment.Value);
-                        content += $"\n{attachmentTypeComponent.attachmentType.ToString()}";
+                        //content += $"\n{attachmentTypeComponent.attachmentType.ToString()}";
                     }
                 }
-                tooltipText.text = content;
-                tooltipText.fontSize = 19;
+
                 tooltipPanel.SetActive(true);
                 RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
                 tooltipRect.position = ClampToScreen(position, tooltipRect);
             }
+
             return;
         }
 
@@ -423,26 +434,282 @@ public class UIController : MonoBehaviour {
             Entity foundAttachment = FindItemAtIndexFromWeapon(equippedGuns[0].GunEntity, slotIndex);
             if (foundAttachment != Entity.Null) {
                 var attachmentComponent = entityManager.GetComponentData<AttachmentComponent>(foundAttachment);
-                string content = $"Damage: {attachmentComponent.damage}\n" +
-                                 $"Accuracy: {attachmentComponent.accuracy}\n" +
-                                 $"Attack Rate: {attachmentComponent.attackRate}\n" +
-                                 $"Recoil Amount: {attachmentComponent.recoilAmount}\n" +
-                                 $"Spread Amount: {attachmentComponent.spreadAmount}\n" +
-                                 $"Bullets Per Shot: {attachmentComponent.bulletsPerShot}";
-                tooltipText.text = content;
-                tooltipText.fontSize = 19;
+
+                SetupAttachmentTooltip(attachmentComponent);
+
                 tooltipPanel.SetActive(true);
                 RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
                 tooltipRect.position = ClampToScreen(position, tooltipRect);
             }
         }
-        
+
     }
+
+    public void SetupWeaponTooltip(WeaponData weaponData) {
+        ClearText(tierModifier);
+        ClearText(damageModifier);
+        ClearText(attackSpeedModifier);
+        ClearText(recoilModifier);
+        ClearText(spreadModifier);
+        ClearText(projectilePerShotModifier);
+        ClearText(reloadSpeedModifier);
+        ClearText(ammoCapacityModifier);
+        ClearText(bonusModifier_1);
+        ClearText(bonusModifier_2);
+        ClearText(bonusModifier_3);
+
+        float startX = 9f;
+        float startY = 144.5f;
+        float stepY = -30f;
+
+        weaponName.text = weaponData.weaponName.ToString();
+        Canvas.ForceUpdateCanvases();
+        
+        // Current position tracker
+        Vector2 currentPosition = new Vector2(startX, startY);
+        float totalHeight = 150f + weaponName.rectTransform.rect.height;
+
+        SetModifier(
+            tierModifier, 
+            "[Tier 10] [Rare]", 
+            1,
+            ref currentPosition, 
+            stepY,
+            ref totalHeight
+            );
+
+        if (weaponData.damage != 0) {
+            SetModifier(
+                damageModifier, 
+                $"Adds Damage: {weaponData.damage}",
+                weaponData.damage,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (weaponData.attackSpeed != 0) {
+            SetModifier(
+                attackSpeedModifier, 
+                $"Adds Attack Speed: {weaponData.attackSpeed}",
+                weaponData.attackSpeed,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (weaponData.recoilAmount != 0) {
+            SetModifier(
+                recoilModifier, 
+                $"Recoil: {weaponData.recoilAmount}",
+                weaponData.recoilAmount,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (weaponData.spreadAmount != 0) {
+            SetModifier(
+                spreadModifier, 
+                $"Spread: {weaponData.spreadAmount}",
+                weaponData.spreadAmount,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (weaponData.bulletsPerShot != 0) {
+            SetModifier(
+                projectilePerShotModifier, 
+                $"Projectile per Shot: {weaponData.bulletsPerShot}", 
+                weaponData.bulletsPerShot,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (weaponData.reloadSpeed != 0) {
+            SetModifier(
+                reloadSpeedModifier, 
+                $"Reload Speed: {weaponData.reloadSpeed}", 
+                weaponData.reloadSpeed,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (weaponData.ammoCapacity != 0) {
+            SetModifier(
+                ammoCapacityModifier, 
+                $"Ammo Capacity: {weaponData.ammoCapacity}",
+                weaponData.ammoCapacity,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        SetModifier(bonusModifier_1, "Poison enemies", 1, ref currentPosition, stepY, ref totalHeight); // Replace with actual bonuses as needed
+        SetModifier(bonusModifier_2, "Projectiles explodes on impact", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_3, "TEST BONUS 5", 1, ref currentPosition, stepY, ref totalHeight);
+        RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+        tooltipRect.sizeDelta = new Vector2(tooltipRect.sizeDelta.x, totalHeight);
+    }
+    
+    public void SetupAttachmentTooltip(AttachmentComponent attachmentComponent) {
+        // Clear any previous content
+        ClearText(tierModifier);
+        ClearText(damageModifier);
+        ClearText(attackSpeedModifier);
+        ClearText(recoilModifier);
+        ClearText(spreadModifier);
+        ClearText(projectilePerShotModifier);
+        ClearText(reloadSpeedModifier);
+        ClearText(ammoCapacityModifier);
+        ClearText(bonusModifier_1);
+        ClearText(bonusModifier_2);
+        ClearText(bonusModifier_3);
+
+        // Starting positions for the tooltip items
+        float startX = 35f;
+        float startY = 135.0f;
+        float stepY = -30f; // Decrease by 30 for each item
+
+        weaponName.text = attachmentComponent.attachmentName.ToString();
+        Canvas.ForceUpdateCanvases();
+        
+        // Current position tracker
+        Vector2 currentPosition = new Vector2(startX, startY);
+        float totalHeight = 150f + weaponName.rectTransform.rect.height;
+
+        // Set and position tier and stats
+        SetModifier(
+            tierModifier, 
+            "[Tier 10] [Rare]", 
+            1,
+            ref currentPosition, 
+            stepY,
+            ref totalHeight
+            );
+
+        if (attachmentComponent.damage != 0) {
+            SetModifier(
+                damageModifier, 
+                $"Adds Damage: {attachmentComponent.damage}",
+                attachmentComponent.damage,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (attachmentComponent.attackSpeed != 0) {
+            SetModifier(
+                attackSpeedModifier, 
+                $"Adds Attack Speed: {attachmentComponent.attackSpeed}",
+                attachmentComponent.attackSpeed,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (attachmentComponent.recoilAmount != 0) {
+            SetModifier(
+                recoilModifier, 
+                $"Adds Recoil: {attachmentComponent.recoilAmount}",
+                attachmentComponent.recoilAmount,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        if (attachmentComponent.spreadAmount != 0) {
+            SetModifier(
+                spreadModifier, 
+                $"Adds Spread: {attachmentComponent.spreadAmount}",
+                attachmentComponent.spreadAmount,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (attachmentComponent.bulletsPerShot != 0) {
+            SetModifier(
+                projectilePerShotModifier, 
+                $"Adds Projectile per Shot: {attachmentComponent.bulletsPerShot}", 
+                attachmentComponent.bulletsPerShot,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (attachmentComponent.reloadSpeed != 0) {
+            SetModifier(
+                reloadSpeedModifier, 
+                $"Reload Speed: {attachmentComponent.reloadSpeed}", 
+                attachmentComponent.reloadSpeed,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+
+        if (attachmentComponent.ammoCapacity != 0) {
+            SetModifier(
+                ammoCapacityModifier, 
+                $"Adds Ammo Capacity: {attachmentComponent.ammoCapacity}",
+                attachmentComponent.ammoCapacity,
+                ref currentPosition, 
+                stepY,
+                ref totalHeight
+                );
+        }
+        
+        SetModifier(bonusModifier_1, "Attachment Bonus Test 1", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_2, "Adds +3 projectile", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_3, "Adds +35 magazine capacity", 1, ref currentPosition, stepY, ref totalHeight);
+        RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+        tooltipRect.sizeDelta = new Vector2(tooltipRect.sizeDelta.x, totalHeight);
+    }
+    
+    private void SetModifier(TMP_Text modifier, string text, float value, ref Vector2 position, float stepY, ref float height) {
+        Debug.Log("Set Modifier Text"+ text);
+        if (value != 0) {
+            modifier.text = text;
+            modifier.gameObject.SetActive(true); // Ensure the modifier is visible
+            modifier.rectTransform.localPosition = position;
+            position.y += stepY; // Move to the next line
+            
+            Canvas.ForceUpdateCanvases(); // Force a UI update to get accurate dimensions
+            float currentHeight = modifier.rectTransform.rect.height;
+            height += currentHeight;
+            Debug.Log($"Set Modifier: {text}, Total Height: {height}, Current Height: {currentHeight}");
+        }
+        else {
+            modifier.gameObject.SetActive(false); // Hide unused modifiers
+        }
+    }
+
+    private void ClearText(TMP_Text modifier) {
+        modifier.text = string.Empty;
+        modifier.gameObject.SetActive(false);
+    }
+
 
     public void HideTooltip() {
         tooltipPanel.SetActive(false);
     }
-    
+
     public void DropItemAtIndexToGround(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
@@ -496,6 +763,7 @@ public class UIController : MonoBehaviour {
                     if (indexToRemove != -1) {
                         inventoryBuffer.RemoveAt(indexToRemove);
                     }
+
                     commandBuffer.RemoveComponent<EquippedGun>(playerSingleton.PlayerEntity);
                     commandBuffer.AddBuffer<EquippedGun>(playerSingleton.PlayerEntity);
                     commandBuffer.AddComponent<DroppedItemTag>(equippedGuns[0].GunEntity);
@@ -516,8 +784,9 @@ public class UIController : MonoBehaviour {
                         Debug.LogWarning("Attachment from item at index does not found");
                         break;
                     }
+
                     GunAttachmentHelper.RequestRemoveAttachment(equippedGuns[0].GunEntity, foundAttachment);
-                    
+
                     commandBuffer.AddComponent<DroppedItemTag>(foundAttachment);
                     commandBuffer.SetComponent(foundAttachment, new LocalTransform {
                         Position = playerTransform.Position,
@@ -544,7 +813,7 @@ public class UIController : MonoBehaviour {
                     itemData.onGround = true;
                     itemData.isEquipped = false;
                     commandBuffer.SetComponent(itemAtIndex, itemData);
-                    
+
                     SpriteRenderer spriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(itemAtIndex);
                     spriteRenderer.enabled = true;
 
@@ -555,7 +824,7 @@ public class UIController : MonoBehaviour {
                     });
                     commandBuffer.AddComponent<DroppedItemTag>(itemAtIndex);
                     commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
-                    
+
                     DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
                     int indexToRemove = -1;
@@ -570,18 +839,19 @@ public class UIController : MonoBehaviour {
                     if (indexToRemove != -1) {
                         inventoryBuffer.RemoveAt(indexToRemove);
                     }
+
                     break;
                 }
             }
-            
+
             commandBuffer.Playback(entityManager);
         }
     }
 
     public void DropWeaponWithAttachments(Entity weaponEntity, Vector2 dropPosition) {
-        
+
     }
-    
+
     private void SwapEntitySlots(Entity entity1, Entity entity2, SlotType slotType1, SlotType slotType2) {
         Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
         Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
@@ -611,7 +881,7 @@ public class UIController : MonoBehaviour {
 
         Debug.Log($"After Move - Item Slot: {itemComp.slot}");
     }
-    
+
     private void HandleParentChildRelationships(Entity entity1, Item itemComp1, SlotType slotType1, Entity entity2, Item itemComp2, SlotType slotType2) {
         if (IsAttachmentSlot(slotType1) && !IsAttachmentSlot(slotType2)) {
             DetachItemFromWeapon(entity1);
@@ -629,7 +899,7 @@ public class UIController : MonoBehaviour {
             Debug.Log("From inventory to weapon moving happened");
         }
     }
-    
+
     private bool IsAttachmentSlot(SlotType slotType) {
         return slotType == SlotType.Muzzle_Attachment ||
                slotType == SlotType.Scope_Attachment ||
@@ -640,15 +910,15 @@ public class UIController : MonoBehaviour {
     private bool IsWeaponSlot(SlotType slotType) {
         return slotType == SlotType.Weapon;
     }
-    
+
     private void DetachItemFromWeapon(Entity attachmentEntity) {
         Debug.Log($"Detaching attachment {attachmentEntity} from its parent weapon.");
-        
+
         if (attachmentEntity == Entity.Null) {
             Debug.Log("Attachment Entity was null. No need to detach!");
             return;
         }
-        
+
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
         DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
@@ -662,13 +932,13 @@ public class UIController : MonoBehaviour {
             commandBuffer.RemoveComponent<Parent>(attachmentEntity);
             commandBuffer.Playback(entityManager);
         }
-    
+
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
         inventoryBuffer.Add(new Inventory { itemEntity = attachmentEntity });
 
         var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
         attachmentSpriteRenderer.enabled = false;
-        
+
         Debug.Log($"Successfully detached and moved attachment {attachmentEntity} to inventory.");
     }
 
@@ -685,7 +955,7 @@ public class UIController : MonoBehaviour {
         var muzzlePointTransform = entityManager.GetComponentData<MuzzlePointTransform>(equippedGuns[0].GunEntity);
         var scopePointTransform = entityManager.GetComponentData<ScopePointTransform>(equippedGuns[0].GunEntity);
         var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachmentEntity);
-        
+
         if (equippedGuns.IsEmpty) {
             Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
             return;
@@ -693,7 +963,7 @@ public class UIController : MonoBehaviour {
 
         using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
             commandBuffer.AddComponent(attachmentEntity, new Parent { Value = equippedGuns[0].GunEntity });
-            
+
             // set offsets of a weapon
             switch (attachmentType.attachmentType) {
                 case AttachmentType.Scope: {
@@ -713,13 +983,13 @@ public class UIController : MonoBehaviour {
                     break;
                 }
             }
-            
+
             commandBuffer.Playback(entityManager);
         }
-    
+
         var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
         attachmentSpriteRenderer.enabled = true;
-        
+
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
         int indexToRemove = -1;
@@ -735,7 +1005,7 @@ public class UIController : MonoBehaviour {
             inventoryBuffer.RemoveAt(indexToRemove);
         }
     }
-    
+
     public void ClearInventory() {
         foreach (var slotData in _inventorySlots.Values) {
             InventorySlot slot = slotData.SlotObject.GetComponent<InventorySlot>();
@@ -763,10 +1033,11 @@ public class UIController : MonoBehaviour {
             return false;
         }
     }
+
     public Canvas GetInventoryCanvas() {
         return inventoryCanvas;
     }
-    
+
     public Canvas GetScreenSpaceCanvas() {
         if (_screenSpaceCanvasObject == null) {
             return null;
@@ -774,7 +1045,7 @@ public class UIController : MonoBehaviour {
 
         return _screenSpaceCanvasObject.GetComponent<Canvas>();
     }
-    
+
     public Canvas GetCanvas() {
         return GetInventoryCanvas();
     }

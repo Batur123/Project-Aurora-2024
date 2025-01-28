@@ -71,19 +71,22 @@ namespace ECS.Systems {
                     ecb.AddComponent(assaultRifleRequest, new SpawnGunRequest
                     {
                         gunType = GunType.Rifle,
-                        position = new float3(1,1,0)
+                        position = new float3(1,1,0),
+                        variantId = 0
                     });
                     var assaultRifleRequest2 = ecb.CreateEntity();
                     ecb.AddComponent(assaultRifleRequest2, new SpawnGunRequest
                     {
                         gunType = GunType.GrenadeLauncher,
-                        position = new float3(1,2,0)
+                        position = new float3(1,2,0),
+                        variantId = 0
                     });
                     var shotgunRequest = ecb.CreateEntity();
                     ecb.AddComponent(shotgunRequest, new SpawnGunRequest
                     {
                         gunType = GunType.Shotgun,
-                        position = new float3(-1,-1,0)
+                        position = new float3(-1,-1,0),
+                        variantId = 0
                     });
                     break;
                 }
