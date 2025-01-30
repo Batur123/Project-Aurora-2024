@@ -509,7 +509,23 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      32x32_bonfire_0: -7876481623975123868
+      32x32_bonfire_1: 559206312684729400
+      32x32_bonfire_10: 1279305259150727121
+      32x32_bonfire_11: -2214770094257782775
+      32x32_bonfire_12: -2973084533451270337
+      32x32_bonfire_13: -6771154216374796505
+      32x32_bonfire_14: 7536969967428284181
+      32x32_bonfire_15: 6067203199119637704
+      32x32_bonfire_2: -8785071319695987037
+      32x32_bonfire_3: 4883250189130705825
+      32x32_bonfire_4: 5435348551856211927
+      32x32_bonfire_5: -4745657534921196183
+      32x32_bonfire_6: 1241303713282090285
+      32x32_bonfire_7: -264828381891441773
+      32x32_bonfire_8: 8166303117147886775
+      32x32_bonfire_9: 1251719360905536393
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

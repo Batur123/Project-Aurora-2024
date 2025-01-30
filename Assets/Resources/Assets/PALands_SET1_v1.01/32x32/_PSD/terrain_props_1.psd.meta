@@ -959,7 +959,41 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      terrain_props_1_0: 8879194931124965939
+      terrain_props_1_1: 6749310506326428519
+      terrain_props_1_10: 376769687716085507
+      terrain_props_1_11: -8367399809622540157
+      terrain_props_1_12: -2727881299408868181
+      terrain_props_1_13: 8184934680779464271
+      terrain_props_1_14: -6608504858819171694
+      terrain_props_1_15: 6484726458633751844
+      terrain_props_1_16: -2932007698929828860
+      terrain_props_1_17: 1252332269493574854
+      terrain_props_1_18: 182745198805392400
+      terrain_props_1_19: -7315118640299062526
+      terrain_props_1_2: 433232194469032434
+      terrain_props_1_20: -1611017066177551396
+      terrain_props_1_21: -8086658344786179131
+      terrain_props_1_22: -2644966933140046454
+      terrain_props_1_23: -684565688893894748
+      terrain_props_1_24: -3580121405285737387
+      terrain_props_1_25: -1436347799946649033
+      terrain_props_1_26: 4551281107551658679
+      terrain_props_1_27: -3348239779821849428
+      terrain_props_1_28: 7411310871852546585
+      terrain_props_1_29: -8473704183714208757
+      terrain_props_1_3: 9061807007579333183
+      terrain_props_1_30: 4600503798788706870
+      terrain_props_1_31: -1443336701675765418
+      terrain_props_1_32: 8108558263148208941
+      terrain_props_1_33: -5095395178691633939
+      terrain_props_1_4: -3773515122879417078
+      terrain_props_1_5: 4608841168341671851
+      terrain_props_1_6: -3653203994328619069
+      terrain_props_1_7: 7878836213643186536
+      terrain_props_1_8: -2464014837968050386
+      terrain_props_1_9: 4511117983365223649
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

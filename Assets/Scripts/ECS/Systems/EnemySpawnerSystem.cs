@@ -7,32 +7,56 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace ECS.Systems {
-       [BurstCompile]
+    [BurstCompile]
     public partial struct SpawnerSystem : ISystem {
+        private const float SPAWN_DISTANCE = 5f;
+        private const float OFFSET_RANGE = 2f;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<WaveManager>();
+            state.RequireForUpdate<PlayerSingleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
             EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
-            WaveManager waveManager = SystemAPI.GetSingleton<WaveManager>();
+            var waveManager = SystemAPI.GetSingleton<WaveManager>();
+            var playerSingl = SystemAPI.GetSingleton<PlayerSingleton>();
+            var playerTrans = SystemAPI.GetComponentRO<LocalTransform>(playerSingl.PlayerEntity);
 
-            new ProcessEnemySpawnerJob {
-                deltaTime = SystemAPI.Time.DeltaTime,
-                ecb = ecb,
-                randomPosition = (0.03f < Random.Range(0f, 1f)) switch {
-                    true => new Vector2(Random.Range(-7f, 7f), Random.Range(-4f, 4f)),
-                    false => new Vector2(Random.Range(-5f, 5f), Random.Range(-3f, 3f))
-                },
-                randomEnemyType = Random.Range(1, 1001) switch {
+            float2 playerPos2D = playerTrans.ValueRO.Position.xy;
+
+            for (int i = 0; i < 15; i++) {
+                int directionIndex = Random.Range(0, 4);
+                float2 baseOffset = directionIndex switch {
+                    0 => new float2(0, SPAWN_DISTANCE),
+                    1 => new float2(0, -SPAWN_DISTANCE),
+                    2 => new float2(SPAWN_DISTANCE, 0),
+                    _ => new float2(-SPAWN_DISTANCE, 0),
+                };
+
+                float2 randomOffset = new float2(
+                    Random.Range(-OFFSET_RANGE, OFFSET_RANGE),
+                    Random.Range(-OFFSET_RANGE, OFFSET_RANGE)
+                );
+
+                float2 finalSpawnPos = playerPos2D + baseOffset + randomOffset;
+
+                EnemyType randomEnemyType = Random.Range(1, 1001) switch {
                     <= 700 => EnemyType.BASIC_ZOMBIE,
                     <= 950 => EnemyType.RUNNER_ZOMBIE,
                     _ => EnemyType.TANK_ZOMBIE
-                },
-                waveManager = waveManager,
-            }.ScheduleParallel();
+                };
+
+                new ProcessEnemySpawnerJob {
+                    deltaTime = SystemAPI.Time.DeltaTime,
+                    ecb = ecb,
+                    waveManager = waveManager,
+                    randomEnemyType = randomEnemyType,
+                    spawnPosition2D = finalSpawnPos
+                }.ScheduleParallel();
+            }
         }
 
         private EntityCommandBuffer.ParallelWriter GetEntityCommandBuffer(ref SystemState state) {
@@ -48,22 +72,24 @@ namespace ECS.Systems {
         public EntityCommandBuffer.ParallelWriter ecb;
         public float deltaTime;
         public EnemyType randomEnemyType;
-        public Vector2 randomPosition;
 
-        private void Execute([ChunkIndexInQuery] int chunkIndex, ref EntityData spawner, ref SpawnerTime spawnerTime) {
+        public float2 spawnPosition2D;
+
+        private void Execute([ChunkIndexInQuery] int chunkIndex,
+            ref EntityData spawner,
+            ref SpawnerTime spawnerTime) {
             spawnerTime.nextSpawnTime -= deltaTime;
-            if (spawnerTime.nextSpawnTime > 0 || !waveManager.isActive) {
+            if (spawnerTime.nextSpawnTime > 0 || !waveManager.isActive)
                 return;
-            }
 
             Entity newEntity = ecb.Instantiate(chunkIndex, spawner.prefab);
 
-            // Attach Tags
             ecb.AddComponent<EnemyTag>(chunkIndex, newEntity);
             ecb.AddComponent<IsSpawned>(chunkIndex, newEntity);
 
+            float3 spawnPos3D = new float3(spawnPosition2D.x, spawnPosition2D.y, 0);
             ecb.SetComponent(chunkIndex, newEntity, LocalTransform.FromPositionRotationScale(
-                new float3(randomPosition.x, randomPosition.y, 0),
+                spawnPos3D,
                 quaternion.identity,
                 2.5f
             ));
@@ -71,6 +97,7 @@ namespace ECS.Systems {
             ecb.AddComponent(chunkIndex, newEntity, new EnemyData {
                 enemyType = randomEnemyType,
                 health = 10,
+                maxHealth = 10,
                 damage = 2f,
                 meleeAttackRange = 0.2f,
                 attackSpeed = 1f
@@ -87,7 +114,7 @@ namespace ECS.Systems {
                 Linear = 0.9f,
                 Angular = 0.9f
             });
-            spawnerTime.nextSpawnTime = 1f;
+            spawnerTime.nextSpawnTime = 0.05f;
         }
     }
 }

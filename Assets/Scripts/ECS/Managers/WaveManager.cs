@@ -8,7 +8,7 @@ namespace ECS {
         protected override void OnCreate() {
             RequireForUpdate<PlayerSingleton>();
             Entity waveManagerEntity = EntityManager.CreateEntity(ComponentType.ReadWrite<WaveManager>());
-            SystemAPI.SetSingleton(new WaveManager { currentWave = 1, isActive = false, waveTimer = 20f });
+            SystemAPI.SetSingleton(new WaveManager { currentWave = 1, isActive = false, waveTimer = 100f, totalEnemy = 0});
             EntityManager.SetName(waveManagerEntity, "WaveManagerEntity");
 
         }
@@ -17,7 +17,7 @@ namespace ECS {
             WaveManager waveManager = SystemAPI.GetSingleton<WaveManager>();
             var currentText = waveManager.isActive ? $"- Time Left: {Math.Round(waveManager.waveTimer)}" : "";
             UIController.Instance.SetTextValue(UIController.TextType.COUNTDOWN_TEXT, $"Wave: {waveManager.currentWave} {currentText}");
-            UIController.Instance.SetTextValue(UIController.TextType.ARMOR_TEXT, !waveManager.isActive ? "Press E to start wave" : "");
+            //UIController.Instance.SetTextValue(UIController.TextType.ARMOR_TEXT, !waveManager.isActive ? "Press E to start wave" : "");
 
             // test
             //UIController.Instance.SetTextValue(UIController.TextType.ITEM_DROP_TEXT, "ITS THE ITEM");
@@ -28,9 +28,9 @@ namespace ECS {
             }
 
             waveManager.waveTimer -= SystemAPI.Time.DeltaTime;
-            if (waveManager.waveTimer <= 0) {
+           // if (waveManager.waveTimer <= 0) {
                 waveManager.isActive = false;
-            }
+           // }
 
             SystemAPI.SetSingleton(waveManager);
         }

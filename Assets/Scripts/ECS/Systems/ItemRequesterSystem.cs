@@ -161,6 +161,7 @@ namespace ECS {
         public GunType gunType;
         public int variantId;
         public float3 position;
+        public float scale;
     }
     
     public struct SpawnAttachmentRequest : IComponentData {
@@ -369,7 +370,7 @@ namespace ECS {
                 
                 var position = request.ValueRO.position;
                 var rotation = quaternion.identity;
-                var scale = 1f;
+                var scale = request.ValueRO.scale;
 
                 LocalTransform localTransform = LocalTransform.FromPositionRotationScale(position, rotation, scale);
 
@@ -385,7 +386,8 @@ namespace ECS {
                     AddAttachment(
                         ecb, ref state, gunEntity, AttachmentType.Scope, 0, attachmentLibrarySystemRef,
                         scopePointTransform.position, scopePointTransform.rotation,
-                        new AttachmentComponent { spreadAmount = 0.5f, attachmentName = AttachmentType.Scope.ToString() }
+                        new AttachmentComponent { spreadAmount = 0.5f, attachmentName = AttachmentType.Scope.ToString() },
+                        request.ValueRO
                     );
                     
                    //ecb.SetName(attachmentEntity, AttachmentType.Scope.ToString());
@@ -434,7 +436,7 @@ namespace ECS {
                     ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
                         muzzlePointTransform.position,
                         muzzlePointTransform.rotation,
-                        1.0f
+                        1
                     ));
 
                     ecb.AddComponent(attachmentEntity, new AttachmentTag());
@@ -468,7 +470,7 @@ namespace ECS {
         public void AddAttachment(
             EntityCommandBuffer ecb, ref SystemState state, Entity gunEntity, 
             AttachmentType attachmentType, int variantId, AttachmentLibrarySystem attachmentLibrarySystemRef, 
-            float3 position, quaternion rotation, AttachmentComponent attachmentComponent) 
+            float3 position, quaternion rotation, AttachmentComponent attachmentComponent, SpawnGunRequest request) 
         {
             Entity descriptorEntity = attachmentLibrarySystemRef.GetDescriptor(attachmentType, variantId);
             if (descriptorEntity == Entity.Null) {
@@ -483,7 +485,7 @@ namespace ECS {
             ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
                 position,
                 rotation,
-                1.0f
+                1
             ));
 
             ecb.AddComponent(attachmentEntity, new AttachmentTag());

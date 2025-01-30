@@ -124,7 +124,7 @@ namespace ECS {
                 }
                 
                 if (entityManager.HasComponent<PickupRequest>(otherEntity)) {
-                    Debug.Log("Was picking up item already, skipped!!!!");
+                    //Debug.Log("Was picking up item already, skipped!!!!");
                     return;
                 }
                 ecb.AddComponent<PickupRequest>(0, otherEntity);
@@ -147,7 +147,7 @@ namespace ECS {
                 int firstEmptySlotIndex = InventoryHelper.FindFirstEmptyInventorySlot(inventoryLookup[playerEntity], itemLookup);
 
                 if (firstEmptySlotIndex == -1) {
-                    Debug.Log("Inventory was full");
+                    //Debug.Log("Inventory was full");
                     return;
                 }
 

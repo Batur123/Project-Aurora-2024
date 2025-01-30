@@ -88,6 +88,7 @@ public class UIController : MonoBehaviour {
 
     private void Start() {
         entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
     }
 
     private void Update() {

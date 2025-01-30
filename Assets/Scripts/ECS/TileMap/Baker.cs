@@ -1,6 +1,5 @@
 ﻿using ECS.TileMap;
 using Unity.Entities;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 

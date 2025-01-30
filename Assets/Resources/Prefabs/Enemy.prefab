@@ -12,6 +12,9 @@ GameObject:
   - component: {fileID: -4250692909477178879}
   - component: {fileID: 1791221606102161720}
   - component: {fileID: 555108048907204397}
+  - component: {fileID: 2497491515185148925}
+  - component: {fileID: 776888356111221262}
+  - component: {fileID: 2941707547014984947}
   m_Layer: 7
   m_Name: Enemy
   m_TagString: Untagged
@@ -29,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6, y: 6, z: 6}
+  m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -101,35 +104,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b275e5f92732148048d7b77e264ac30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShapeType: 0
+  m_ShapeType: 2
   m_PrimitiveCenter:
     x: 0
     y: 0
     z: 0
   m_PrimitiveSize:
-    x: 0.123802125
-    y: 0.19069044
-    z: 0.19069044
+    x: 0.14150232
+    y: 0.14150232
+    z: 0.14150232
   m_PrimitiveOrientation:
     Value:
-      x: 0
+      x: 89.98022
       y: 0
-      z: 0
+      z: -1.6284436e-12
     RotationOrder: 4
   m_Capsule:
-    Height: 0.19069044
-    Radius: 0.09534522
+    Height: 0.14150232
+    Radius: 0.07075116
     Axis: 2
   m_Cylinder:
-    Height: 0.123802125
-    Radius: 0.09534522
-    Axis: 0
+    Height: 0.14150232
+    Radius: 0.07075116
+    Axis: 2
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.09534522
+  m_SphereRadius: 0.07075116
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.015
-    m_BevelRadius: 0.05
+    m_BevelRadius: 0
     m_MinimumAngle: 2.5000002
   m_CustomMesh: {fileID: 0}
   m_ForceUnique: 1
@@ -142,13 +145,13 @@ MonoBehaviour:
     m_Friction:
       m_Override: 0
       m_Value:
-        Value: 1
+        Value: 0.5
         CombineMode: 0
     m_Restitution:
       m_Override: 0
       m_Value:
-        Value: 0
-        CombineMode: 2
+        Value: 0.075
+        CombineMode: 0
     m_BelongsToCategories:
       m_Override: 0
       m_Value:
@@ -187,38 +190,38 @@ MonoBehaviour:
     m_CollidesWithCategories:
       m_Override: 0
       m_Value:
-        Category00: 1
+        Category00: 0
         Category01: 1
         Category02: 1
         Category03: 1
         Category04: 0
-        Category05: 1
+        Category05: 0
         Category06: 1
-        Category07: 1
-        Category08: 1
-        Category09: 1
-        Category10: 1
-        Category11: 1
-        Category12: 1
-        Category13: 1
-        Category14: 1
-        Category15: 1
-        Category16: 1
-        Category17: 1
-        Category18: 1
-        Category19: 1
-        Category20: 1
-        Category21: 1
-        Category22: 1
-        Category23: 1
-        Category24: 1
-        Category25: 1
-        Category26: 1
-        Category27: 1
-        Category28: 1
-        Category29: 1
-        Category30: 1
-        Category31: 1
+        Category07: 0
+        Category08: 0
+        Category09: 0
+        Category10: 0
+        Category11: 0
+        Category12: 0
+        Category13: 0
+        Category14: 0
+        Category15: 0
+        Category16: 0
+        Category17: 0
+        Category18: 0
+        Category19: 0
+        Category20: 0
+        Category21: 0
+        Category22: 0
+        Category23: 0
+        Category24: 0
+        Category25: 0
+        Category26: 0
+        Category27: 0
+        Category28: 0
+        Category29: 0
+        Category30: 0
+        Category31: 0
     m_CustomMaterialTags:
       m_Override: 0
       m_Value:
@@ -283,3 +286,56 @@ MonoBehaviour:
     Tag05: 0
     Tag06: 0
     Tag07: 0
+--- !u!54 &2497491515185148925
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4471977270975950620}
+  serializedVersion: 5
+  m_Mass: 10
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 72
+  m_CollisionDetection: 1
+--- !u!114 &776888356111221262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4471977270975950620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8e489d4da604e3cbd42f21fe530482e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_WorldIndex: 0
+--- !u!114 &2941707547014984947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4471977270975950620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a444254202384e4ea55b4fe97742fbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CalculateDetails: 1

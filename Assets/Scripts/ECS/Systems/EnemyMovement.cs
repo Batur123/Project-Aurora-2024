@@ -2,27 +2,82 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 namespace ECS.Systems {
-    [BurstCompile]
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    public partial struct EnemyMovementSystem : ISystem {
-        public void OnUpdate(ref SystemState state) {
-            if (SystemAPI.TryGetSingletonRW(out RefRW<PlayerSingleton> singletonRW)) {
-                Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
-                RefRO<LocalTransform> playerTransform = SystemAPI.GetComponentRO<LocalTransform>(playerEntity);
+    // Working but use new for test
+    //[BurstCompile]
+    //[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    //[UpdateAfter(typeof(PhysicsSimulationGroup))]
+    //public partial struct EnemyMovementSystem : ISystem {
+    //    public void OnCreate(ref SystemState state) {
+    //        state.RequireForUpdate<PlayerSingleton>();
+    //        state.RequireForUpdate<EnemyTag>();
+    //        state.RequireForUpdate<IsSpawned>();
+    //    }
+//
+    //    public void OnUpdate(ref SystemState state) {
+    //        var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+    //        RefRO<LocalTransform> playerTransform = SystemAPI.GetComponentRO<LocalTransform>(playerSingleton.PlayerEntity);
+//
+    //        foreach (var (enemyPhysics, enemyTransform, entity) in SystemAPI.Query<RefRW<PhysicsVelocity>, RefRO<LocalTransform>>()
+    //                     .WithAll<EnemyTag, IsSpawned>().WithNone<DisabledEnemyTag>().WithEntityAccess()) {
+    //            float3 direction = math.normalize(playerTransform.ValueRO.Position - enemyTransform.ValueRO.Position);
+    //            enemyPhysics.ValueRW.Linear += direction * UnityEngine.Random.Range(0.9f, 1.5f) * SystemAPI.Time.DeltaTime;
+    //        }
+    //    }
+    //}
 
-                foreach (var (enemyPhysics, enemyTransform) in SystemAPI.Query<RefRW<PhysicsVelocity>, RefRO<LocalTransform>>()
-                             .WithAll<EnemyTag, IsSpawned>()) {
-                    float3 direction = math.normalize(playerTransform.ValueRO.Position - enemyTransform.ValueRO.Position);
-                    enemyPhysics.ValueRW.Linear = direction * 1f; // Adjust speed here
+    [BurstCompile]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateBefore(typeof(PhysicsSimulationGroup))]
+    public partial struct EnemyMovementSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<PlayerSingleton>();
+            state.RequireForUpdate<EnemyTag>();
+            state.RequireForUpdate<IsSpawned>();
+        }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+            var playerTransform = SystemAPI.GetComponentRO<LocalTransform>(playerSingleton.PlayerEntity);
+            float3 ppos = playerTransform.ValueRO.Position;
+        
+            float speed = 1f;
+
+            foreach (var (enemyPhysics, enemyTransform) 
+                     in SystemAPI.Query<RefRW<PhysicsVelocity>, RefRO<LocalTransform>>()
+                         .WithAll<EnemyTag, IsSpawned>()
+                         .WithNone<DisabledEnemyTag>())
+            {
+                float3 epos = enemyTransform.ValueRO.Position;
+                float3 dir  = ppos - epos;
+                dir.z       = 0f;
+
+                if (math.lengthsq(dir) > 0.000001f) 
+                {
+                    dir = math.normalize(dir);
                 }
+                else
+                {
+                    dir = float3.zero;
+                }
+
+                // Kill old velocity so there's no "surfing"
+                enemyPhysics.ValueRW.Linear = float3.zero;
+            
+                // Set new velocity instantly towards player
+                enemyPhysics.ValueRW.Linear = dir * speed;
             }
         }
     }
-
+    
     public partial class EnemyMovementSpriteFlip : SystemBase {
         protected override void OnCreate() {
             RequireForUpdate<PlayerSingleton>();
@@ -34,7 +89,7 @@ namespace ECS.Systems {
             var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
             LocalTransform playerLocalTransform = SystemAPI.GetComponent<LocalTransform>(playerSingleton.PlayerEntity);
             
-            Entities.WithAll<EnemyTag, IsSpawned>()
+            Entities.WithAll<EnemyTag, IsSpawned>().WithNone<DisabledEnemyTag>()
                 .ForEach((LocalTransform localTransform, SpriteRenderer spriteRenderer) =>
                 {
                     var directionToPlayer = playerLocalTransform.Position.x - localTransform.Position.x;

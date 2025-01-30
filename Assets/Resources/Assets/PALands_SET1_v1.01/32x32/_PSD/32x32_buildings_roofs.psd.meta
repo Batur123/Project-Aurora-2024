@@ -384,7 +384,18 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      32x32_buildings_roofs_0: 2527288582727366042
+      32x32_buildings_roofs_1: -5289914753081419098
+      32x32_buildings_roofs_10: 2833770899835849208
+      32x32_buildings_roofs_2: -6956663177979626600
+      32x32_buildings_roofs_3: 3683058766934917166
+      32x32_buildings_roofs_4: 929346900926486924
+      32x32_buildings_roofs_5: -8318440845656709504
+      32x32_buildings_roofs_6: -8058847756346475659
+      32x32_buildings_roofs_7: 1571929139848804605
+      32x32_buildings_roofs_8: 5256268935745504156
+      32x32_buildings_roofs_9: 6751900264895876891
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

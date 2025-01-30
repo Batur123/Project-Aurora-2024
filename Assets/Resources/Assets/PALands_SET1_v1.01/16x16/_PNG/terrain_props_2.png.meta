@@ -1209,7 +1209,51 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      terrain_props_2_0: -8314266700062700553
+      terrain_props_2_1: -8963932626439895763
+      terrain_props_2_10: -2513617804115099983
+      terrain_props_2_11: 6300650852047760572
+      terrain_props_2_12: 4974884858501796749
+      terrain_props_2_13: -8487770193655918525
+      terrain_props_2_14: -5909245991521099511
+      terrain_props_2_15: 2894960507420520390
+      terrain_props_2_16: 5619699254231753822
+      terrain_props_2_17: 8161997280416444974
+      terrain_props_2_18: -7329668200239958417
+      terrain_props_2_19: 3108967517168679838
+      terrain_props_2_2: 5539394962275057463
+      terrain_props_2_20: 1862050121166412473
+      terrain_props_2_21: -6285094753987813405
+      terrain_props_2_22: -5439903117715635820
+      terrain_props_2_23: 4783772882710585161
+      terrain_props_2_24: -5655331678055214515
+      terrain_props_2_25: -1842838057323059826
+      terrain_props_2_26: -2041793497709982874
+      terrain_props_2_27: 7066507900929016019
+      terrain_props_2_28: 7140909065671787938
+      terrain_props_2_29: -1944640546571806941
+      terrain_props_2_3: 8572973910428337206
+      terrain_props_2_30: 5983054483900093977
+      terrain_props_2_31: -4187313889637164268
+      terrain_props_2_32: -90169404339980160
+      terrain_props_2_33: -3560948820422989019
+      terrain_props_2_34: -4360681537755283527
+      terrain_props_2_35: -3390211484250436376
+      terrain_props_2_36: 1122914474175539565
+      terrain_props_2_37: 2338323456895299235
+      terrain_props_2_38: -6224013864283278999
+      terrain_props_2_39: -4748491924430761077
+      terrain_props_2_4: 7928226237071050519
+      terrain_props_2_40: -5265701327136896323
+      terrain_props_2_41: -5712598082765697973
+      terrain_props_2_42: -6858156251977554331
+      terrain_props_2_43: -7678559703276829278
+      terrain_props_2_5: 6226572844803938173
+      terrain_props_2_6: -600061872822924360
+      terrain_props_2_7: -8686530489883797426
+      terrain_props_2_8: 8917827311211299928
+      terrain_props_2_9: -1582706785068383672
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

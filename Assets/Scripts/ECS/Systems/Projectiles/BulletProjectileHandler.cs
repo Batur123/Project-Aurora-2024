@@ -45,7 +45,6 @@ namespace ECS.Systems.Projectiles {
             projectileDataLookup.Update(ref state);
 
             EntityCommandBuffer.ParallelWriter ecb = GetEntityCommandBuffer(ref state);
-
             state.Dependency = new TriggerEventsJob {
                 ecb = ecb,
                 colliderLookup = colliderLookup,
@@ -55,8 +54,8 @@ namespace ECS.Systems.Projectiles {
                 projectileDataLookup = projectileDataLookup,
                 frameCount = Time.frameCount,
                 playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity,
-            }.Schedule(state.Dependency);
-            state.Dependency.Complete();
+            }.ScheduleParallel(state.Dependency);
+           // state.Dependency.Complete();
         }
         
         static CollisionBelongsToLayer GetCollisionFilter(PhysicsCollider collider) {
@@ -79,18 +78,16 @@ namespace ECS.Systems.Projectiles {
             public EntityCommandBuffer.ParallelWriter ecb;
 
             [ReadOnly] public ComponentLookup<PhysicsCollider> colliderLookup;
+            [ReadOnly] public ComponentLookup<ProjectileComponent> projectileComponentLookup;
+            [ReadOnly] public ComponentLookup<PlayerData> playerDataLookup;
+            [ReadOnly] public ComponentLookup<ProjectileDataComponent> projectileDataLookup;
+            [ReadOnly] public ComponentLookup<EnemyData> enemyDataLookup;
             
-            public ComponentLookup<ProjectileComponent> projectileComponentLookup;
-            public ComponentLookup<PlayerData> playerDataLookup;
-            public ComponentLookup<ProjectileDataComponent> projectileDataLookup;
-            public ComponentLookup<EnemyData> enemyDataLookup;
-
             public Entity playerEntity;
             public int frameCount;
 
             void Execute([ChunkIndexInQuery] int chunkIndex, Entity projectileEntity, ref DynamicBuffer<StatefulTriggerEvent> buffer) {
                 for (int i = 0; i < buffer.Length; i++) {
-                    //Debug.Log(buffer.Length + " trigger event");
                     var triggerEvent = buffer[i];
                     var targetEntity = triggerEvent.GetOtherEntity(projectileEntity);
 
@@ -106,51 +103,45 @@ namespace ECS.Systems.Projectiles {
                     var targetColliderFilter = GetCollisionFilter(targetCollider);
                     var projectileCollider = colliderLookup[projectileEntity];
                     var projectileColliderFilter = GetCollisionFilter(projectileCollider);
-                    //Debug.Log($"Frame {frameCount} Entity {projectileEntity} => State:[{triggerEvent.State}] " +
-                    //          $"vs {triggerEvent.GetOtherEntity(projectileEntity)}, " +
-                    //          $"HitFilter: {targetColliderFilter}");
                     
                     if (projectileColliderFilter != CollisionBelongsToLayer.Projectile) {
                         continue;
                     }
+                    
+                    //Debug.Log($"Frame {frameCount} Entity {projectileEntity} => State:[{triggerEvent.State}] " +
+                    //          $"vs {triggerEvent.GetOtherEntity(projectileEntity)},  ProjectFilter: {projectileColliderFilter}" +
+                    //          $"HitFilter: {targetColliderFilter}");
+                    
                     if (targetColliderFilter == CollisionBelongsToLayer.Wall) {
                         ecb.DestroyEntity(chunkIndex, projectileEntity);
                         continue;
                     }
-                    
-                    switch (triggerEvent.State) {
-                        case StatefulEventState.Enter: {
-                            if (enemyDataLookup.HasComponent(targetEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
-                                EnemyData enemyData = enemyDataLookup[targetEntity];
-                                ProjectileComponent projectileComponent = projectileComponentLookup[projectileEntity];
-                                ProjectileDataComponent projectileDataComponent = projectileDataLookup[projectileEntity];
-                                
-                                // Decrease piercing
-                                projectileDataComponent.piercingEnemyNumber -= 1;
-                                
-                                // without if else statement it causes errors for commandbuffer to destroy + set component at the same time
-                                if (projectileDataComponent.piercingEnemyNumber <= 0) {
-                                    ecb.DestroyEntity(chunkIndex, projectileEntity);
-                                    continue;
-                                }
-                                else {
-                                    ecb.SetComponent(chunkIndex, projectileEntity, projectileDataComponent);
-                                }
 
-                                // Decrease enemy health
-                                enemyData.health -= projectileComponent.BaseDamage;
-                                if (enemyData.health <= 0f) {
-                                    // Increase Player XP
-                                    PlayerData playerData = playerDataLookup[playerEntity];
-                                    playerData.experience += 1;
-                                    ecb.SetComponent(chunkIndex, playerEntity, playerData);
-                                    ecb.DestroyEntity(chunkIndex, targetEntity);
-                                }
-                                else {
-                                    ecb.SetComponent(chunkIndex, targetEntity, enemyData);
-                                }
-                            }
-                            break;
+                    if (triggerEvent.State != StatefulEventState.Enter) {
+                        continue;
+                    }
+                    
+                    if (enemyDataLookup.HasComponent(targetEntity) && projectileComponentLookup.HasComponent(projectileEntity)) {
+                        EnemyData enemyData = enemyDataLookup[targetEntity];
+                        ProjectileComponent projectileComponent = projectileComponentLookup[projectileEntity];
+                        ProjectileDataComponent projectileDataComponent = projectileDataLookup[projectileEntity];
+                                
+                       
+                        enemyData.health -= projectileComponent.BaseDamage;
+                        if (enemyData.health <= 0f) {
+                            ecb.AddComponent<DisabledEnemyTag>(chunkIndex, targetEntity);
+                        }
+                        else {
+                            ecb.SetComponent(chunkIndex, targetEntity, enemyData);
+                        }
+                                
+                        projectileDataComponent.piercingEnemyNumber -= 1;
+                        if (projectileDataComponent.piercingEnemyNumber <= 0) {
+                            ecb.DestroyEntity(chunkIndex, projectileEntity);
+                            continue;
+                        }
+                        else {
+                            ecb.SetComponent(chunkIndex, projectileEntity, projectileDataComponent);
                         }
                     }
                 }

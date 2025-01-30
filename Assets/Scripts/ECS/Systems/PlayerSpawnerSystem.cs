@@ -37,7 +37,7 @@ namespace ECS.Systems {
                         Angular = float3.zero
                     });
                     ecb.AddComponent(playerEntity, new ProjectileShootingData { nextShootingTime = 2f });
-                    ecb.AddComponent(playerEntity, new PlayerData { experience = 0, level = 1 });
+                    ecb.AddComponent(playerEntity, new PlayerData { experience = 0, level = 1, killCount = 0 });
                     ecb.AddComponent(playerEntity, new CharacterStats {
                         health = 10f,
                         maxHealth = 10f,
@@ -72,21 +72,32 @@ namespace ECS.Systems {
                     {
                         gunType = GunType.Rifle,
                         position = new float3(1,1,0),
-                        variantId = 0
+                        variantId = 0,
+                        scale = 1f,
                     });
                     var assaultRifleRequest2 = ecb.CreateEntity();
                     ecb.AddComponent(assaultRifleRequest2, new SpawnGunRequest
                     {
                         gunType = GunType.GrenadeLauncher,
                         position = new float3(1,2,0),
-                        variantId = 0
+                        variantId = 0,
+                        scale = 1f,
                     });
                     var shotgunRequest = ecb.CreateEntity();
                     ecb.AddComponent(shotgunRequest, new SpawnGunRequest
                     {
                         gunType = GunType.Shotgun,
                         position = new float3(-1,-1,0),
-                        variantId = 0
+                        variantId = 0,
+                        scale = 1f,
+                    });
+                    var minigunRequest = ecb.CreateEntity();
+                    ecb.AddComponent(minigunRequest, new SpawnGunRequest
+                    {
+                        gunType = GunType.Rifle,
+                        position = new float3(-2,-1,0),
+                        variantId = 1,
+                        scale = 1f,
                     });
                     break;
                 }

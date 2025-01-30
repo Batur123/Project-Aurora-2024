@@ -1,4 +1,5 @@
-﻿using ECS.Bakers;
+﻿using System.Threading;
+using ECS.Bakers;
 using ECS.Systems;
 using ECS.Systems.Projectiles;
 using ScriptableObjects;
@@ -52,7 +53,7 @@ namespace ECS {
             UIController.Instance.UpdateHealthBar(characterStats.health, characterStats.maxHealth);
 
             UIController.Instance.SetTextValue(UIController.TextType.SCOREBOARD_TEXT,
-                $"Level: {CalculateLevelByExperience(playerData.experience)} Exp: {playerData.experience}");
+                $"Level: {CalculateLevelByExperience(playerData.experience)} Exp: {playerData.experience} Kill: {playerData.killCount}");
 
 
             if (!equippedGunBuffer.IsEmpty) {
@@ -90,7 +91,7 @@ namespace ECS {
                     return;
                 }
 
-                waveManager.waveTimer = 20f;
+                waveManager.waveTimer = 100f;
                 waveManager.currentWave++;
                 waveManager.isActive = true;
                 SystemAPI.SetSingleton(waveManager);
@@ -126,7 +127,7 @@ namespace ECS {
             if (SystemAPI.TryGetSingletonRW(out RefRW<PlayerSingleton> singletonRW)) {
                 Entity playerEntity = singletonRW.ValueRW.PlayerEntity;
                 RefRW<LocalTransform> transformRW = SystemAPI.GetComponentRW<LocalTransform>(playerEntity);
-                transformRW.ValueRW.Position += new float3(moveDirection * 2 * SystemAPI.Time.DeltaTime, 0f);
+                transformRW.ValueRW.Position += new float3(moveDirection * 1.3f * SystemAPI.Time.DeltaTime, 0f);
                 
                 if (state.EntityManager.HasComponent<SpriteRenderer>(playerEntity)) {
                     SpriteRenderer spriteRenderer = state.EntityManager.GetComponentObject<SpriteRenderer>(playerEntity);
@@ -320,26 +321,109 @@ namespace ECS {
         }
     }
 
+    [BurstCompile]
     public partial struct EnemyMeleeAttackSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<PlayerSingleton>();
+        }
+        
         public void OnUpdate(ref SystemState state) {
-            foreach (var (enemyData, enemyTransform, attackTimer, enemyEntity) in SystemAPI.Query<RefRW<EnemyData>, RefRW<LocalTransform>, RefRW<AttackTimer>>()
-                         .WithEntityAccess()) {
+            var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+            var playerLocalTransform = SystemAPI.GetComponentRO<LocalTransform>(playerSingleton.PlayerEntity);
+            var characterStats = SystemAPI.GetComponentRW<CharacterStats>(playerSingleton.PlayerEntity);
+
+            foreach (var (enemyData, enemyTransform, attackTimer) 
+                     in SystemAPI.Query<RefRO<EnemyData>, RefRO<LocalTransform>, RefRW<AttackTimer>>()) {
                 attackTimer.ValueRW.TimeElapsed += SystemAPI.Time.DeltaTime;
 
-                foreach (var (playerData, playerTransform, characterStats, playerEntity) in SystemAPI
-                             .Query<RefRW<PlayerData>, RefRO<LocalTransform>, RefRW<CharacterStats>>()
-                             .WithEntityAccess()) {
-                    var distance = Vector3.Distance(enemyTransform.ValueRO.Position, playerTransform.ValueRO.Position);
-                    if (distance <= enemyData.ValueRO.meleeAttackRange && attackTimer.ValueRW.TimeElapsed >= enemyData.ValueRO.attackSpeed) {
-                        characterStats.ValueRW.health -= enemyData.ValueRO.damage;
-                        Debug.Log($"Enemy {enemyEntity} attacks Player {playerEntity}, causing {enemyData.ValueRO.damage} damage.");
-                        attackTimer.ValueRW.TimeElapsed = 0f;
-                    }
+                var distance = Vector3.Distance(enemyTransform.ValueRO.Position, playerLocalTransform.ValueRO.Position);
+                if (distance <= enemyData.ValueRO.meleeAttackRange && attackTimer.ValueRW.TimeElapsed >= enemyData.ValueRO.attackSpeed) {
+                    characterStats.ValueRW.health -= enemyData.ValueRO.damage;
+                    attackTimer.ValueRW.TimeElapsed = 0f;
                 }
+
             }
         }
     }
 
+    [BurstCompile]
+    public partial struct DisableEnemiesOnDeathSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<PlayerSingleton>();
+        }
+    
+        public void OnUpdate(ref SystemState state) {
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecbParallel = ecb.AsParallelWriter();
+
+            new DisableEnemiesJob {
+                ECB = ecbParallel
+            }.ScheduleParallel();
+
+            state.Dependency.Complete(); // Ensure completion before playback
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+
+        [BurstCompile]
+        public partial struct DisableEnemiesJob : IJobEntity {
+            public EntityCommandBuffer.ParallelWriter ECB;
+
+            public void Execute(Entity entity, [EntityIndexInQuery] int index, in DisabledEnemyTag tag) {
+                ECB.AddComponent<Disabled>(index, entity);
+            }
+        }
+    }
+
+    
+    [BurstCompile]
+    public partial struct UpdatePlayerStats : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<PlayerSingleton>();
+        }
+    
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state) {
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecbParallel = ecb.AsParallelWriter();
+
+            var playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
+            var playerData = SystemAPI.GetComponentRW<PlayerData>(playerSingleton.PlayerEntity);
+
+            var killCountRef = new NativeReference<int>(Allocator.TempJob);
+            var experienceRef = new NativeReference<int>(Allocator.TempJob);
+
+            new UpdatePlayerStatsJob {
+                ECB = ecbParallel,
+                KillCount = killCountRef,
+                Experience = experienceRef
+            }.Schedule();
+            state.Dependency.Complete();
+
+            Interlocked.Add(ref playerData.ValueRW.killCount, killCountRef.Value);
+            Interlocked.Add(ref playerData.ValueRW.experience, experienceRef.Value);
+
+            killCountRef.Dispose();
+            experienceRef.Dispose();
+            ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+
+        [BurstCompile]
+        public partial struct UpdatePlayerStatsJob : IJobEntity {
+            public EntityCommandBuffer.ParallelWriter ECB;
+            public NativeReference<int> KillCount;
+            public NativeReference<int> Experience;
+
+            public void Execute(Entity entity, [EntityIndexInQuery] int index, in DisabledEnemyTag tag, in Disabled isDisabled) {
+                KillCount.Value += 1; 
+                Experience.Value += 1;
+                ECB.DestroyEntity(index, entity);
+            }
+        }
+    }
+
+    
     // [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     // public partial struct CheckCollisionsSystem : ISystem {
     //     private ComponentLookup<PhysicsCollider> colliderLookup;

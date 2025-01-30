@@ -334,7 +334,16 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      32x32_trash_can_fire_0: 957361360571830035
+      32x32_trash_can_fire_1: -5912781149835009228
+      32x32_trash_can_fire_2: 7787760239811135642
+      32x32_trash_can_fire_3: 2099093276997915865
+      32x32_trash_can_fire_4: -1750759049490578821
+      32x32_trash_can_fire_5: 8269455214647438012
+      32x32_trash_can_fire_6: -5473949338424381477
+      32x32_trash_can_fire_7: -8986915600604809699
+      32x32_trash_can_fire_8: -3985557749079914126
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

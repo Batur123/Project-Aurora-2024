@@ -24,13 +24,15 @@ namespace ECS {
         public int currentWave;
         public bool isActive;
         public float waveTimer;
+        public int totalEnemy;
     }
     
     public struct PlayerTag : IComponentData {
     }
 
-    public struct EnemyTag : IComponentData {
+    public struct EnemyTag : IComponentData, IEnableableComponent  {
     }
+    public struct DisabledEnemyTag : IComponentData {}
 
     public struct BossTag : IComponentData {
     }
@@ -64,6 +66,7 @@ namespace ECS {
     public struct EnemyData : IComponentData {
         public EnemyType enemyType;
         public float health;
+        public float maxHealth;
         public float damage;
         public float attackSpeed;
         public float meleeAttackRange;
@@ -94,6 +97,7 @@ namespace ECS {
     public struct PlayerData : IComponentData {
         public int experience;
         public int level;
+        public int killCount;
     }
 
     public struct EquippedGun : IBufferElementData

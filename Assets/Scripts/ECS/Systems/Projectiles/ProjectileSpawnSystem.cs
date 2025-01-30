@@ -49,7 +49,7 @@ namespace ECS.Systems.Projectiles {
                     return 1.5f;
                 }
                 default: {
-                    return 0.3f;
+                    return 0.2f;
                 }
             }
         }
@@ -67,10 +67,10 @@ namespace ECS.Systems.Projectiles {
             });
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileTag { });
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileComponent {
-                Speed = 5f,
+                Speed = 7f,
                 Lifetime = 4f,
                 Velocity = new float3(shootDirection.x, shootDirection.y, 0f) * 1f,
-                BaseDamage = 55f,
+                BaseDamage = weaponData.damage,
             });
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileDataComponent {
                 piercingEnemyNumber = weaponData.piercingBulletsPerShot,

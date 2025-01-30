@@ -16,6 +16,7 @@ namespace ECS.TileMap {
         private bool m_Initialized;
 
         public void OnCreate(ref SystemState state) {
+            return;
             // We'll look for any entity that has these three components:
             m_TilemapQuery = state.GetEntityQuery(
                 ComponentType.ReadOnly<RenderTilemapTag>()
@@ -25,6 +26,7 @@ namespace ECS.TileMap {
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state) {
+            return;
             if (m_Initialized)
                 return; // only run once
 
@@ -42,6 +44,7 @@ namespace ECS.TileMap {
             var tilemap = renderData.tileMap;
             var material = renderData.tileMaterial;
             Debug.Log("Tile map result" + tilemap);
+            Debug.Log("Tile map result" + material);
 
             // 1) Create a "prototype" entity that has the required ECS rendering components
             //    We do this once, then we instantiate it for each tile.
@@ -60,6 +63,7 @@ namespace ECS.TileMap {
                 new Material[] { material },
                 new Mesh[] { mesh }
             );
+            Debug.Log("Tile map result" + mesh);
 
             // Add the ECS rendering components. This attaches things like:
             // - MaterialMeshInfo
@@ -91,6 +95,7 @@ namespace ECS.TileMap {
 
                         // Instantiate our prototype
                         var e = ecb.Instantiate(prototype);
+                        Debug.Log("RUN INSTANT");
 
                         // Position in the world
                         float3 worldPos = tilemap.GetCellCenterWorld(cellPos);
