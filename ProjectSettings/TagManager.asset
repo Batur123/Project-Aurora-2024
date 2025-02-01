@@ -17,6 +17,9 @@ TagManager:
   - WeaponScopePoint
   - InventorySlotPanelTag
   - InventorySlot
+  - Enemy
+  - AttachmentSlot
+  - WeaponSlot
   layers:
   - Default
   - TransparentFX

@@ -15,7 +15,7 @@ MonoBehaviour:
   gunType: 2
   gunName: Gaus-19
   projectileType: 1
-  ammoCapacity: 80
+  ammoCapacity: 200
   damage: 1
   accuracy: 1
   attackSpeed: 30

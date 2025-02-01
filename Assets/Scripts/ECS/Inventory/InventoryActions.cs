@@ -5,8 +5,14 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditor;
 using UnityEngine;
 
+/*
+ * 1 .... 15 Item in Inventory
+ * 16 17 18 19 Attachment
+ * 20 Weapon
+ */
 namespace ECS {
     public static class InventoryHelper {
         public static int FindFirstEmptyInventorySlot(DynamicBuffer<Inventory> inventory, ComponentLookup<Item> itemLookup) {
@@ -15,13 +21,13 @@ namespace ECS {
             foreach (var inventoryItem in inventory) {
                 if (itemLookup.HasComponent(inventoryItem.itemEntity)) {
                     Item itemData = itemLookup[inventoryItem.itemEntity];
-                    if (itemData.slot >= 5 && itemData.slot <= 23) {
+                    if (itemData.slot >= 0 && itemData.slot <= 15) {
                         occupiedSlots.Add(itemData.slot);
                     }
                 }
             }
 
-            for (int slot = 5; slot <= 23; slot++) {
+            for (int slot = 0; slot <= 15; slot++) {
                 if (!occupiedSlots.Contains(slot)) {
                     return slot;
                 }
@@ -125,16 +131,6 @@ namespace ECS {
             ecb.Dispose();
         }
 
-        SlotType SelectAttachmentSlotType(AttachmentType attachmentType) {
-            switch (attachmentType) {
-                case AttachmentType.Barrel: return SlotType.Muzzle_Attachment;
-                case AttachmentType.Ammunition: return SlotType.Ammunition_Attachment;
-                case AttachmentType.Scope: return SlotType.Scope_Attachment;
-                case AttachmentType.Magazine: return SlotType.Magazine_Attachment;
-                default: return SlotType.Item;
-            }
-        }
-        
         public void SetupUI() {
             UIController.Instance.ClearInventory();
             
@@ -152,15 +148,14 @@ namespace ECS {
                     && item.itemEntity == equippedGun[0].GunEntity) {
                     var gunSprite = entityManager.GetComponentObject<SpriteRenderer>(item.itemEntity);
                     var gunItem = entityManager.GetComponentData<Item>(item.itemEntity);
-                    UIController.Instance.RenderItem(gunItem.slot, gunSprite.sprite, SlotType.Weapon, "");
+                    UIController.Instance.RenderItem(gunItem.slot, gunSprite.sprite, SlotType.Weapon, gunItem.itemType);
 
                     DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(item.itemEntity);
                     foreach (Child attachment in attachments) {
                         if (entityManager.HasComponent<AttachmentTag>(attachment.Value)) {
-                            var attachmentItem = entityManager.GetComponentData<Item>(attachment.Value);
                             var attachmentSprite = entityManager.GetComponentObject<SpriteRenderer>(attachment.Value);
-                            var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachment.Value);
-                            UIController.Instance.RenderItem(attachmentItem.slot, attachmentSprite.sprite, SelectAttachmentSlotType(attachmentType.attachmentType), "");
+                            var attachmentItem = entityManager.GetComponentData<Item>(attachment.Value);
+                            UIController.Instance.RenderItem(attachmentItem.slot, attachmentSprite.sprite, SlotType.Attachment, attachmentItem.itemType);
                         }
                     }
                     continue;
@@ -168,9 +163,13 @@ namespace ECS {
                 
                 var itemData = entityManager.GetComponentData<Item>(item.itemEntity);
                 var itemSprite = entityManager.GetComponentObject<SpriteRenderer>(item.itemEntity);
-                UIController.Instance.RenderItem(itemData.slot, itemSprite.sprite, SlotType.Item, "");
+                UIController.Instance.RenderItem(itemData.slot, itemSprite.sprite, SlotType.Item, itemData.itemType);
             }
 
+            initStats(characterStats);
+        }
+
+        public void initStats(CharacterStats characterStats) {
             foreach (TMP_Text textComponent in textComponents) {
                 switch (textComponent.name) {
                     case "Stats_HealthRegeneration_Text": {

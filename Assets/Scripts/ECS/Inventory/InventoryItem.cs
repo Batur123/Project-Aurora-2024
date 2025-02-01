@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class InventoryItem : MonoBehaviour, 
+    IBeginDragHandler, IDragHandler, 
+    IEndDragHandler, IPointerClickHandler, 
+    IPointerEnterHandler, IPointerExitHandler
 {
     private Canvas inventoryCanvas;
     private RectTransform rectTransform;
@@ -80,18 +82,6 @@ public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             }
         }
     }
-    
-    public bool IsSwapAllowed(int index1, int index2) {
-        bool isIndex1Special = index1 >= 0 && index1 <= 4;
-        bool isIndex2Special = index2 >= 0 && index2 <= 4;
-
-        if (isIndex1Special && isIndex2Special) {
-            return false;
-        }
-
-        return true;
-    }
-
 
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -119,14 +109,11 @@ public class InventoryItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
        
         if (currentSlot != null && targetSlot != null && targetSlot != currentSlot)
         {
-            var isSwapAllowed = IsSwapAllowed(currentSlot.SlotIndex, targetSlot.SlotIndex);
-            if (!isSwapAllowed) {
+            var isSwapped = UIController.Instance.SwapItems(currentSlot.SlotIndex, targetSlot.SlotIndex);
+            if (!isSwapped) {
                 rectTransform.SetParent(currentSlot.transform, false);
                 rectTransform.anchoredPosition = Vector2.zero;
-                return;
             }
-            
-            UIController.Instance.SwapItems(currentSlot.SlotIndex, targetSlot.SlotIndex);
         }
         else
         {

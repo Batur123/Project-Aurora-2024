@@ -334,12 +334,12 @@ namespace ECS {
 
             foreach (var (enemyData, enemyTransform, attackTimer) 
                      in SystemAPI.Query<RefRO<EnemyData>, RefRO<LocalTransform>, RefRW<AttackTimer>>()) {
-                attackTimer.ValueRW.TimeElapsed += SystemAPI.Time.DeltaTime;
+               // attackTimer.ValueRW.TimeElapsed += SystemAPI.Time.DeltaTime;
 
                 var distance = Vector3.Distance(enemyTransform.ValueRO.Position, playerLocalTransform.ValueRO.Position);
                 if (distance <= enemyData.ValueRO.meleeAttackRange && attackTimer.ValueRW.TimeElapsed >= enemyData.ValueRO.attackSpeed) {
                     characterStats.ValueRW.health -= enemyData.ValueRO.damage;
-                    attackTimer.ValueRW.TimeElapsed = 0f;
+                    //attackTimer.ValueRW.TimeElapsed = 0f;
                 }
 
             }

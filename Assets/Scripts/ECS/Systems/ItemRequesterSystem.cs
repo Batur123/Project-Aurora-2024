@@ -360,6 +360,7 @@ namespace ECS {
                 ecb.SetComponent(gunEntity, muzzlePointTransform);
                 ecb.SetComponent(gunEntity, new Item {
                     slot = -1,
+                    itemType = ItemType.WEAPON,
                     onGround = true,
                     isEquipped = false,
                     isStackable = false,
@@ -376,88 +377,24 @@ namespace ECS {
 
                 ecb.SetComponent(gunEntity, localTransform);
                 
-                // Spawn Base Scope that has +0 values
                 Entity baseScopeEntity = attachmentLibrarySystemRef.GetDescriptor(AttachmentType.Scope, request.ValueRO.variantId);
                 if (baseScopeEntity != Entity.Null) {
-                    //var scopePrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseScopeEntity);
-                    //Entity attachmentEntity = ecb.Instantiate(scopePrefab.prefab);
-                    
-                    // Add Scope
                     AddAttachment(
                         ecb, ref state, gunEntity, AttachmentType.Scope, 0, attachmentLibrarySystemRef,
                         scopePointTransform.position, scopePointTransform.rotation,
                         new AttachmentComponent { spreadAmount = 0.5f, attachmentName = AttachmentType.Scope.ToString() },
                         request.ValueRO
                     );
-                    
-                   //ecb.SetName(attachmentEntity, AttachmentType.Scope.ToString());
-                   //ecb.AddComponent(attachmentEntity, new AttachmentComponent {
-                   //    accuracyModifier = 5,
-                   //});
-                   //
-                   //ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
-                   //    scopePointTransform.position,
-                   //    scopePointTransform.rotation,
-                   //    1.0f
-                   //));
-
-                   //ecb.AddComponent(attachmentEntity, new AttachmentTag());
-                   //ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
-                   //    attachmentType = AttachmentType.Scope
-                   //});
-                   //ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
-                   //ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
-                   //ecb.AddComponent<Item>(attachmentEntity);
-                   //ecb.SetComponent(attachmentEntity, new Item {
-                   //    slot = -1,
-                   //    onGround = true,
-                   //    isEquipped = false,
-                   //    isStackable = false,
-                   //    quantity = 1
-                   //});
-                   ////spriteRenderer.sprite = attachmentTemplate.attachmentSprite;
-                   //
-                   //if (!state.EntityManager.HasComponent<Child>(gunEntity))
-                   //{
-                   //    ecb.AddBuffer<Child>(gunEntity);
-                   //}
                 }
                 
                 Entity baseBarrelEntity = attachmentLibrarySystemRef.GetDescriptor(AttachmentType.Barrel, request.ValueRO.variantId);
                 if (baseBarrelEntity != Entity.Null) {
-                    var barrelPrefab = state.EntityManager.GetComponentData<BuiltPrefab>(baseBarrelEntity);
-                    Entity attachmentEntity = ecb.Instantiate(barrelPrefab.prefab);
-                    ecb.SetName(attachmentEntity, AttachmentType.Barrel.ToString());
-                    ecb.AddComponent(attachmentEntity, new AttachmentComponent {
-                        spreadAmount = 0.5f,
-                        attachmentName = AttachmentType.Barrel.ToString()
-                    });
-                    
-                    ecb.AddComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
-                        muzzlePointTransform.position,
-                        muzzlePointTransform.rotation,
-                        1
-                    ));
-
-                    ecb.AddComponent(attachmentEntity, new AttachmentTag());
-                    ecb.AddComponent(attachmentEntity, new AttachmentTypeComponent {
-                        attachmentType = AttachmentType.Barrel
-                    });
-                    ecb.AddComponent(attachmentEntity, new Parent { Value = gunEntity });
-                    ecb.AddComponent(attachmentEntity, new LocalToWorld  { Value = float4x4.identity });
-                    ecb.AddComponent<Item>(attachmentEntity);
-                    ecb.SetComponent(attachmentEntity, new Item {
-                        slot = -1,
-                        onGround = true,
-                        isEquipped = false,
-                        isStackable = false,
-                        quantity = 1
-                    });
-                    
-                    if (!state.EntityManager.HasComponent<Child>(gunEntity))
-                    {
-                        ecb.AddBuffer<Child>(gunEntity);
-                    }
+                    AddAttachment(
+                        ecb, ref state, gunEntity, AttachmentType.Barrel, 0, attachmentLibrarySystemRef,
+                        muzzlePointTransform.position, muzzlePointTransform.rotation,
+                        new AttachmentComponent { spreadAmount = 0.5f, attachmentName = AttachmentType.Barrel.ToString() },
+                        request.ValueRO
+                    );
                 }
                 
                 ecb.DestroyEntity(requestEntity);
@@ -497,6 +434,7 @@ namespace ECS {
             ecb.AddComponent<Item>(attachmentEntity);
             ecb.SetComponent(attachmentEntity, new Item {
                 slot = -1,
+                itemType = ItemType.ATTACHMENT,
                 onGround = true,
                 isEquipped = false,
                 isStackable = false,

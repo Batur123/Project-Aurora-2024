@@ -1,24 +1,24 @@
-﻿using System;
+﻿using ECS;
 using UnityEngine;
-using UnityEngine.UI;
 
 public enum SlotType
 {
     None,
     Item,
-    Muzzle_Attachment,
-    Scope_Attachment,
-    Magazine_Attachment,
-    Ammunition_Attachment,
+    //Muzzle_Attachment,
+    //Scope_Attachment,
+    //Magazine_Attachment,
+    //Ammunition_Attachment,
     Weapon,
     Material,
+    Attachment,
 }
 
 public class InventorySlot : MonoBehaviour
 {
-    [SerializeField] public int SlotIndex;
-    [SerializeField] public SlotType SlotType { get; private set; }
-    [SerializeField] public SlotType CurrentItemType;
+    [SerializeField] public int SlotIndex; // index
+    [SerializeField] public SlotType SlotType; // slot type item weapon or attachment
+    [SerializeField] public ItemType CurrentItemType; // item type from inventory!
 
     public InventoryItem CurrentItem { get; private set; }
 
@@ -29,7 +29,7 @@ public class InventorySlot : MonoBehaviour
         uiController = UIController.Instance;
     }
 
-    public void Initialize(int index, SlotType slotType, SlotType currentItemType)
+    public void Initialize(int index, SlotType slotType, ItemType currentItemType)
     {
         SlotIndex = index;
         SlotType = slotType;
@@ -37,9 +37,11 @@ public class InventorySlot : MonoBehaviour
 
     }
 
-    public void AssignItem(InventoryItem item)
+    public void AssignItem(InventoryItem item, ItemType currentItemType)
     {
         CurrentItem = item;
+        CurrentItemType = currentItemType;
+        //Debug.Log($"Assigning item {item} --- {currentItemType}");
         if (item != null)
         {
             item.SetSlot(this);
@@ -50,8 +52,8 @@ public class InventorySlot : MonoBehaviour
 
     public void RemoveItem()
     {
-        if (CurrentItem != null)
-        {
+        if (CurrentItem != null) {
+            CurrentItemType = ItemType.NONE;
             CurrentItem.SetSlot(null);
             CurrentItem = null;
         }

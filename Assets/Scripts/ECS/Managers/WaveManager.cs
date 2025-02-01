@@ -19,10 +19,6 @@ namespace ECS {
             UIController.Instance.SetTextValue(UIController.TextType.COUNTDOWN_TEXT, $"Wave: {waveManager.currentWave} {currentText}");
             //UIController.Instance.SetTextValue(UIController.TextType.ARMOR_TEXT, !waveManager.isActive ? "Press E to start wave" : "");
 
-            // test
-            //UIController.Instance.SetTextValue(UIController.TextType.ITEM_DROP_TEXT, "ITS THE ITEM");
-            //UIController.Instance.UpdateTextPosition(UIController.TextType.ITEM_DROP_TEXT, new Vector2(5f, 5f));
-
             if (!waveManager.isActive) {
                 return;
             }

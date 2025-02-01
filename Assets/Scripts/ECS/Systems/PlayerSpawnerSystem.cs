@@ -99,6 +99,12 @@ namespace ECS.Systems {
                         variantId = 1,
                         scale = 1f,
                     });
+                    var scopeReq = ecb.CreateEntity();
+                    ecb.AddComponent(scopeReq, new SpawnAttachmentRequest {
+                        attachmentType = AttachmentType.Scope,
+                        position = new float3(-3,-1,0),
+                        variantId = 0,
+                    });
                     break;
                 }
 

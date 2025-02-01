@@ -63,6 +63,11 @@ namespace ECS {
         public Entity grenadeExplosionPrefab;
     }
 
+    public class EnemyMaterial : IComponentData {
+        public Material material;
+        public Mesh mesh;
+    }
+
     public struct EnemyData : IComponentData {
         public EnemyType enemyType;
         public float health;
@@ -164,8 +169,16 @@ namespace ECS {
     
     public struct InventoryOpen : IComponentData {}
 
+    public enum ItemType {
+        NONE,
+        MATERIAL,
+        WEAPON,
+        ATTACHMENT
+    }
+    
     public struct Item : IComponentData {
         public int slot;
+        public ItemType itemType;
         public bool isEquipped;
         public int quantity;
         public bool isStackable;
@@ -177,5 +190,6 @@ namespace ECS {
     }
     
     public struct DisableSpriteRendererRequest : IComponentData { }
+    public struct EnableSpriteRendererRequest : IComponentData { }
     public struct PickupRequest : IComponentData { }
 }
