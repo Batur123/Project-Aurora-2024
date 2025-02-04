@@ -9,12 +9,6 @@ namespace ECS {
         TANK_ZOMBIE,
     }
 
-    public enum ProjectileType {
-        BULLET,
-        GRENADE,
-        MISSILE,
-    }
-
     public enum CollisionBelongsToLayer {
         None = 0,
         Player = 1 << 0,
@@ -22,19 +16,23 @@ namespace ECS {
         Projectile = 1 << 2,
         Wall = 1 << 3,
         GunEntity = 1 << 4,
+        AttachmentEntity = 1 << 5,
+        Explosion = 1 << 6,
     }
 
     public struct WaveManager : IComponentData {
         public int currentWave;
         public bool isActive;
         public float waveTimer;
+        public int totalEnemy;
     }
     
     public struct PlayerTag : IComponentData {
     }
 
-    public struct EnemyTag : IComponentData {
+    public struct EnemyTag : IComponentData, IEnableableComponent  {
     }
+    public struct DisabledEnemyTag : IComponentData {}
 
     public struct BossTag : IComponentData {
     }
@@ -61,11 +59,19 @@ namespace ECS {
     // Enemy-spawner specific data
     public struct EntityData : IComponentData {
         public Entity prefab;
+        public Entity grenadePrefab;
+        public Entity grenadeExplosionPrefab;
+    }
+
+    public class EnemyMaterial : IComponentData {
+        public Material material;
+        public Mesh mesh;
     }
 
     public struct EnemyData : IComponentData {
         public EnemyType enemyType;
         public float health;
+        public float maxHealth;
         public float damage;
         public float attackSpeed;
         public float meleeAttackRange;
@@ -96,6 +102,7 @@ namespace ECS {
     public struct PlayerData : IComponentData {
         public int experience;
         public int level;
+        public int killCount;
     }
 
     public struct EquippedGun : IBufferElementData
@@ -126,6 +133,19 @@ namespace ECS {
         public float Speed;
     }
 
+    public enum ProjectileType {
+        NONE,
+        BULLET,
+        EXPLOSIVE_GRENADE,
+        EXPLOSIVE_BULLET,
+        POISON_BULLET,
+        ELECTRIC_BULLET,
+    }
+    
+    public struct ProjectileDataComponent : IComponentData {
+        public int piercingEnemyNumber;
+    }
+
     public struct PlayerSingleton : IComponentData {
         public Entity PlayerEntity;
     }
@@ -148,14 +168,17 @@ namespace ECS {
     }
     
     public struct InventoryOpen : IComponentData {}
-    
-    public struct CollisionTimer : IComponentData
-    {
-        public float TimeElapsed; // Tracks how long the collision has lasted
-    }
 
+    public enum ItemType {
+        NONE,
+        MATERIAL,
+        WEAPON,
+        ATTACHMENT
+    }
+    
     public struct Item : IComponentData {
         public int slot;
+        public ItemType itemType;
         public bool isEquipped;
         public int quantity;
         public bool isStackable;
@@ -165,4 +188,8 @@ namespace ECS {
     public struct Inventory : IBufferElementData {
         public Entity itemEntity;
     }
+    
+    public struct DisableSpriteRendererRequest : IComponentData { }
+    public struct EnableSpriteRendererRequest : IComponentData { }
+    public struct PickupRequest : IComponentData { }
 }

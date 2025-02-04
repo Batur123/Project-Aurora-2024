@@ -6,13 +6,12 @@ namespace ScriptableObjects {
     public class AttachmentTemplate : ScriptableObject
     {
         public AttachmentType attachmentType;
-        public Sprite attachmentSprite;
         public string attachmentName;
-        public float damageModifier;   // Example for barrel or ammunition
-        public float reloadSpeedModifier; // Example for magazinew
-        public float accuracyModifier; // Example for stock or barrel
-        public float recoilModifier;  // Example for stock
-        public int capacityModifier;  // Example for magazine
+        public float damageModifier;
+        public float reloadSpeedModifier;
+        public float accuracyModifier;
+        public float recoilModifier;
+        public int capacityModifier;
     }
     
     public enum AttachmentType

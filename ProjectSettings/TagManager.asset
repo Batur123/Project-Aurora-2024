@@ -17,6 +17,9 @@ TagManager:
   - WeaponScopePoint
   - InventorySlotPanelTag
   - InventorySlot
+  - Enemy
+  - AttachmentSlot
+  - WeaponSlot
   layers:
   - Default
   - TransparentFX
@@ -65,6 +68,9 @@ TagManager:
     locked: 0
   - name: EntityWeapon
     uniqueID: 2472766637
+    locked: 0
+  - name: Explosion
+    uniqueID: 287583589
     locked: 0
   m_RenderingLayers:
   - Default

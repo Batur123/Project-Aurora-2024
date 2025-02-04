@@ -124,7 +124,7 @@ namespace ECS {
                 }
                 
                 if (entityManager.HasComponent<PickupRequest>(otherEntity)) {
-                    Debug.Log("Was picking up item already, skipped!!!!");
+                    //Debug.Log("Was picking up item already, skipped!!!!");
                     return;
                 }
                 ecb.AddComponent<PickupRequest>(0, otherEntity);
@@ -147,7 +147,7 @@ namespace ECS {
                 int firstEmptySlotIndex = InventoryHelper.FindFirstEmptyInventorySlot(inventoryLookup[playerEntity], itemLookup);
 
                 if (firstEmptySlotIndex == -1) {
-                    Debug.Log("Inventory was full");
+                    //Debug.Log("Inventory was full");
                     return;
                 }
 
@@ -174,7 +174,8 @@ namespace ECS {
 
                 ecb.SetComponent(0, itemEntity, new Item {
                     isEquipped = true,
-                    slot = 0,
+                    itemType = ItemType.WEAPON,
+                    slot = 20, // 20 always main weapon slot
                     onGround = false,
                     quantity = 1,
                     isStackable = false
@@ -184,6 +185,7 @@ namespace ECS {
 
                 if (childLookup.HasBuffer(itemEntity)) {
                     var attachments = childLookup[itemEntity];
+                    int itemSlot = 16;
                     for (int i = 0; i < attachments.Length; i++) {
                         var attachmentEntity = attachments[i].Value;
 
@@ -192,15 +194,16 @@ namespace ECS {
                         }
 
                         var attachmentType = attachmentTypeLookup[attachmentEntity].attachmentType;
-                        var slotIndex = SelectSlotIndexOfAttachment(attachmentType);
 
                         ecb.SetComponent(0, attachmentEntity, new Item {
                             isEquipped = true,
-                            slot = slotIndex,
+                            itemType = ItemType.ATTACHMENT,
+                            slot = itemSlot,
                             onGround = false,
                             quantity = 1,
                             isStackable = false
                         });
+                        itemSlot++;
                     }
                 }
 

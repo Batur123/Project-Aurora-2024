@@ -1,21 +1,23 @@
 ﻿using System;
+using ECS;
 using UnityEngine;
 
 namespace ScriptableObjects {
     [CreateAssetMenu(fileName = "NewGunTemplate", menuName = "Gun/GunTemplate", order = 1)]
     public class GunTemplate : ScriptableObject
     {
-        public string gunName;
-        public int ammoCapacity = 10;
-        public int durability = 100;
-        public float damage = 1f;
-        public float reloadTime = 1f;
         public GunType gunType;
-        public float attackRate = 1f; // Attacks per second
-        public float recoilAmount = 1f; // Recoil intensity - Pushes player back!
-        public float spreadAmount = 2f; // Spread of bullets - 2 DEGREE
-        public float lastAttackTime = 0f; // Time of last attack
+        public string gunName;
+        public ProjectileType projectileType;
+        public int ammoCapacity = 10;
+        public float damage = 5;
+        public float accuracy = 1;
+        public float attackSpeed = 1;
+        public float recoilAmount = 1;
+        public float spreadAmount = 1;
         public int bulletsPerShot = 1;
+        public float reloadSpeed = 1;
+        public int piercingBulletsPerShot = 1;
     }
 
     public enum GunType

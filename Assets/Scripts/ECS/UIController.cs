@@ -4,6 +4,7 @@ using System.Linq;
 using ECS;
 using ECS.Bakers;
 using ScriptableObjects;
+using TMPro;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
@@ -29,6 +30,20 @@ public class UIController : MonoBehaviour {
     }
 
     public Dictionary<int, InventorySlotData> _inventorySlots = new();
+
+    public GameObject tooltipPanel;
+    public TMP_Text weaponName;
+    public TMP_Text tierModifier;
+    public TMP_Text damageModifier;
+    public TMP_Text attackSpeedModifier;
+    public TMP_Text recoilModifier;
+    public TMP_Text spreadModifier;
+    public TMP_Text reloadSpeedModifier;
+    public TMP_Text projectilePerShotModifier;
+    public TMP_Text ammoCapacityModifier;
+    public TMP_Text bonusModifier_1;
+    public TMP_Text bonusModifier_2;
+    public TMP_Text bonusModifier_3;
 
 
     private Image healthBarBackground;
@@ -73,6 +88,7 @@ public class UIController : MonoBehaviour {
 
     private void Start() {
         entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
     }
 
     private void Update() {
@@ -198,33 +214,20 @@ public class UIController : MonoBehaviour {
             return SlotType.Item;
         }
 
-        if (slotTag == "UIPanelAttachment1") {
-            return SlotType.Muzzle_Attachment;
+        if (slotTag == "AttachmentSlot") {
+            return SlotType.Attachment;
         }
 
-        if (slotTag == "UIPanelAttachment2") {
-            return SlotType.Magazine_Attachment;
-        }
-
-        if (slotTag == "UIPanelAttachment3") {
-            return SlotType.Scope_Attachment;
-        }
-
-        if (slotTag == "UIPanelAttachment4") {
-            return SlotType.Ammunition_Attachment;
-        }
-
-        if (slotTag == "UIPanelWeapon") {
+        if (slotTag == "WeaponSlot") {
             return SlotType.Weapon;
         }
-
 
         return SlotType.None;
     }
 
-    public void RenderItem(int index, Sprite itemImage, SlotType slotType, string itemStats) {
+    public void RenderItem(int index, Sprite itemImage, SlotType slotType, ItemType currentItemType) {
         if (!_inventorySlots.TryGetValue(index, out var foundSlotItem)) {
-            Debug.Log("[RenderItem]: "+ index + " not found");
+            Debug.Log("[RenderItem]: " + index + " not found");
             return;
         }
 
@@ -241,104 +244,512 @@ public class UIController : MonoBehaviour {
 
         var rectTransform = itemObjectSpawned.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.sizeDelta = new Vector2(50, 50);
+        rectTransform.sizeDelta = new Vector2(187.3195f, 176.6627f);
 
-        AssignItemToSlot(index, itemObjectSpawned.GetComponent<InventoryItem>(), slotType);
+        AssignItemToSlot(index, itemObjectSpawned.GetComponent<InventoryItem>(), slotType, currentItemType);
     }
 
     void CreateInventorySlotsManual() {
-        string[] slotTags = {
-            "UIPanelWeapon", // 0
-            "UIPanelAttachment1", // 1
-            "UIPanelAttachment2", // 2
-            "UIPanelAttachment3", // 3
-            "UIPanelAttachment4", // 4
-            "InventorySlot" // rest of items
-        };
-
         int i = 0;
-        foreach (string slotTag in slotTags) {
-            GameObject[] slots = GameObject.FindGameObjectsWithTag(slotTag);
-
-            foreach (GameObject slot in slots) {
-                InventorySlot inventorySlot = slot.AddComponent<InventorySlot>();
-                SlotType slotType = SelectSlotType(slotTag);
-                inventorySlot.Initialize(i, SelectSlotType(slotTag), SlotType.None);
-                _inventorySlots.Add(i, new InventorySlotData(slot, slotType));
-                i++;
-            }
+        // Create Inventory Slots
+        GameObject[] inventorySlots = GameObject.FindGameObjectsWithTag("InventorySlot");
+        foreach (GameObject slot in inventorySlots) {
+            InventorySlot inventorySlot = slot.AddComponent<InventorySlot>();
+            SlotType slotType = SelectSlotType("InventorySlot");
+            inventorySlot.Initialize(i, slotType, ItemType.NONE);
+            _inventorySlots.Add(i, new InventorySlotData(slot, slotType));
+            i++;
         }
+
+        // Create Attachment Slots
+        GameObject[] attachmentSlots = GameObject.FindGameObjectsWithTag("AttachmentSlot");
+        foreach (GameObject slot in attachmentSlots) {
+            InventorySlot inventorySlot = slot.AddComponent<InventorySlot>();
+            SlotType slotType = SelectSlotType("AttachmentSlot");
+            inventorySlot.Initialize(i, slotType, ItemType.NONE);
+            _inventorySlots.Add(i, new InventorySlotData(slot, slotType));
+            i++;
+        }
+
+        // Create Main Weapon Slot
+        GameObject weaponSlot = GameObject.FindGameObjectWithTag("WeaponSlot");
+        InventorySlot weaponSlotInv = weaponSlot.AddComponent<InventorySlot>();
+        SlotType weaponSlotType = SelectSlotType("WeaponSlot");
+        weaponSlotInv.Initialize(i, weaponSlotType, ItemType.NONE);
+        _inventorySlots.Add(i, new InventorySlotData(weaponSlot, weaponSlotType));
+
+        Debug.Log($"[Inventory]: Created {i} inventory slot.");
     }
 
-    public void SwapItems(int index1, int index2) {
-        Debug.Log($"Attempting to swap items in Slot {index1} and Slot {index2}");
-        
+    public bool SwapItems(int index1, int index2) {
         if (_inventorySlots.TryGetValue(index1, out var slotObj1) &&
             _inventorySlots.TryGetValue(index2, out var slotObj2)) {
 
             InventorySlot slot1 = slotObj1.SlotObject.GetComponent<InventorySlot>();
             InventorySlot slot2 = slotObj2.SlotObject.GetComponent<InventorySlot>();
 
+            var slot1Type = slot1.SlotType;
+            var slot2Type = slot2.SlotType;
+
+            var slot1ItemType = slot1.CurrentItemType;
+            var slot2ItemType = slot2.CurrentItemType;
+
             InventoryItem item1 = slot1.CurrentItem;
             InventoryItem item2 = slot2.CurrentItem;
 
-            Debug.Log($"Before Swap - Slot 1 Index: {slot1.SlotIndex}, Slot 2 Index: {slot2.SlotIndex}");
+            Debug.Log($"Attempting to swap items in Slot {index1} and Slot {index2}");
+            Debug.Log($"[   Swap  ] - {slot1.SlotIndex} => {slot2.SlotIndex}");
+            Debug.Log($"[Slot Type] - {slot1.SlotType} => {slot2.SlotType}");
+            Debug.Log($"[Item Type] - {slot1.CurrentItemType} => {slot2.CurrentItemType}");
 
-            slot1.AssignItem(item2);
-            slot2.AssignItem(item1);
+            if (
+                (slot1Type == SlotType.Attachment && slot2Type == SlotType.Weapon) ||
+                (slot2Type == SlotType.Attachment && slot1Type == SlotType.Weapon)
+            ) {
+                Debug.LogWarning($"[Item Swap Warning]: Attempted to swap between {slot1Type} and {slot2Type}. It is not allowed.");
+                return false;
+            }
 
-            Debug.Log("SWAP STARTS");
+            // Item to Item changes between inventory slots are allowed if its not WEAPON or ATTACHMENT special slots.
+            if (slot1Type == SlotType.Item && slot2Type == SlotType.Item) {
+                Debug.Log($"[Swap 2]: Start swapping item - item tags.");
+                slot1.AssignItem(item2, slot2ItemType);
+                slot2.AssignItem(item1, slot1ItemType);
 
-            Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
-            PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
-            Entity player = playerSingleton.PlayerEntity;
-            
-            EntityQuery itemQuery = entityManager.CreateEntityQuery(typeof(Item));
+                Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
 
-            Entity entity1 = Entity.Null;
-            Entity entity2 = Entity.Null;
-            
-            NativeArray<Entity> allItemEntities = itemQuery.ToEntityArray(Allocator.Temp);
-            foreach (Entity currentEntity in allItemEntities) {
-                if (!entityManager.HasComponent<Item>(currentEntity)) continue;
+                Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
 
-                Item itemComponent = entityManager.GetComponentData<Item>(currentEntity);
-                Debug.Log($"Found item in slot {itemComponent.slot} - Current index: {currentEntity.Index}");
+                (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
 
-                if (itemComponent.slot == index1) {
-                    entity1 = currentEntity;
+                entityManager.SetComponentData(entity1, itemComp1);
+                entityManager.SetComponentData(entity2, itemComp2);
+            }
+
+            // If you move item from ItemTab to WeaponTab
+            if (slot1Type == SlotType.Item && slot2Type == SlotType.Weapon) {
+                Debug.Log("[Swap 1]: Start moving item from ItemTab to WeaponTab");
+
+                if (slot1ItemType != ItemType.WEAPON) {
+                    Debug.LogWarning("[Swap Warning 1]: Cannot move non-weapon to weapon slot");
+                    return false;
                 }
-                else if (itemComponent.slot == index2) {
-                    entity2 = currentEntity;
+
+                // If there is no item equipped in weapon tab, then equip weapon
+                if (slot2ItemType == ItemType.NONE) {
+                    Debug.Log("[Swap 1]: Equipped weapon was empty. Equipping new weapon");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    EquipWeapon(entity1);
+                    return true;
                 }
 
-                if (entity1 != Entity.Null && entity2 != Entity.Null) {
-                    break;
+                // If there is already equipped weapon then swap both.
+                if (slot2ItemType == ItemType.WEAPON) {
+                    Debug.Log("[Swap 1]: There was already equipped gun, swap both");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+
+                    (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
+
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    entityManager.SetComponentData(entity2, itemComp2);
+
+                    // Detach Slot 2
+                    DetachWeapon(entity2, slot1.SlotIndex);
+
+                    // Attach Slot 1
+                    EquipWeapon(entity1);
+
+                    return true;
                 }
             }
-            allItemEntities.Dispose();
 
-            if (entity1 != Entity.Null && entity2 != Entity.Null) {
-                SwapEntitySlots(entity1, entity2, slotObj1.Type, slotObj2.Type);
+            // If you move item from WeaponTab to ItemTab
+            if (slot2Type == SlotType.Item && slot1Type == SlotType.Weapon) {
+                Debug.Log($"[Swap 2]: Start moving item from WeaponTab to ItemTab Slot 2 {slot2Type} - Slot 1 {slot1Type}");
+
+                if (slot2ItemType != ItemType.WEAPON && slot2ItemType != ItemType.NONE) {
+                    Debug.LogWarning("[Swap Warning 2]: Cannot move non-weapon to weapon slot");
+                    return false;
+                }
+
+                // If there is no item equipped in weapon tab, then equip weapon
+                if (slot2ItemType == ItemType.NONE) {
+                    Debug.Log("[Swap 2]: Detaching weapon from equipped gun. Because target item was also NONE.");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    DetachWeapon(entity1, slot2.SlotIndex);
+
+                    return true;
+                }
+
+                // If there is already equipped weapon then swap both.
+                if (slot2ItemType == ItemType.WEAPON) {
+                    Debug.Log("[Swap 2]: Swapping both weapons because there was weapon on target slot for both cases");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+
+                    (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
+
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    entityManager.SetComponentData(entity2, itemComp2);
+
+                    // Detach Slot 2
+                    DetachWeapon(entity1, slot2.SlotIndex);
+
+                    // Attach Slot 1
+                    EquipWeapon(entity2);
+                    return true;
+                }
             }
-            else if (entity1 != Entity.Null && entity2 == Entity.Null) {
-                MoveEntityToSlot(entity1, index2, slotObj1.Type, slotObj2.Type);
+
+            // If you move item from ItemTab to AttachmentTab
+            if (slot1Type == SlotType.Item && slot2Type == SlotType.Attachment) {
+                Debug.Log("[Swap 1]: Start moving item from ItemTab to AttachmentTab");
+
+                if (slot1ItemType != ItemType.ATTACHMENT) {
+                    Debug.LogWarning("[Swap Warning 1]: Cannot move non-attachment to attachment slot");
+                    return false;
+                }
+
+                // If there is no item equipped in attachment tab, then equip attachment
+                if (slot2ItemType == ItemType.NONE) {
+                    Debug.Log("[Swap 1]: Equipped attachment was empty. Equipping new attachment");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    itemComp1.slot = slot2.SlotIndex;
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    AttachAttachmentToWeapon(entity1);
+
+                    return true;
+                }
+
+                // If there is already equipped attachment then swap both.
+                // slot 1 attach, slot 2 detach
+                if (slot2ItemType == ItemType.ATTACHMENT) {
+                    Debug.Log("[Swap 1]: There was already equipped attachment, swap both");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+
+                    (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
+
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    entityManager.SetComponentData(entity2, itemComp2);
+
+                    // Detach Slot 2
+                    DetachAttachmentFromWeapon(entity2);
+
+                    // Attach Slot 1
+                    AttachAttachmentToWeapon(entity1);
+                    return true;
+                }
             }
-            else if (entity1 == Entity.Null && entity2 != Entity.Null) {
-                MoveEntityToSlot(entity2, index1, slotObj2.Type, slotObj1.Type);
+
+            // If you move item from AttachmentTab to ItemTab
+            if (slot2Type == SlotType.Item && slot1Type == SlotType.Attachment) {
+                Debug.Log("[Swap 2]: Start moving item from AttachmentTab to ItemTab");
+
+                if (slot2ItemType != ItemType.ATTACHMENT && slot2ItemType != ItemType.NONE) {
+                    Debug.LogWarning("[Swap Warning 2]: Cannot move non-attachment to attachment slot");
+                    return false;
+                }
+
+                // Detaching - Attachment Slot was FULL, moved to NONE inventory
+                if (slot2ItemType == ItemType.NONE) {
+                    Debug.Log("[Swap 2]: Deattaching attachment from weapon to move to the inventory.");
+
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    itemComp1.slot = slot2.SlotIndex;
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    DetachAttachmentFromWeapon(entity1);
+                    return true;
+                }
+
+                // If there is already equipped attachment then swap both.
+                // slot 1 detach, slot 2 attach
+                if (slot1ItemType == ItemType.ATTACHMENT) {
+                    Debug.Log("[Swap 2]: There was already equipped attachment, swap both");
+                    slot1.AssignItem(item2, slot2ItemType);
+                    slot2.AssignItem(item1, slot1ItemType);
+
+                    Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                    Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
+
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+
+                    (itemComp2.slot, itemComp1.slot) = (itemComp1.slot, itemComp2.slot);
+
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    entityManager.SetComponentData(entity2, itemComp2);
+
+                    // Detach Slot 2
+                    DetachAttachmentFromWeapon(entity1);
+
+                    // Attach Slot 1
+                    AttachAttachmentToWeapon(entity2);
+                    return true;
+                }
             }
-            else {
-                Debug.LogWarning("Both slots are empty. No items to swap.");
-            }
+
+            return false;
         }
         else {
             Debug.LogError("One or both slot indices do not exist in the inventory.");
         }
+
+        return false;
+    }
+
+    private void DetachWeapon(Entity weaponEntity, int detachedToIndex) {
+        Debug.Log($"Detaching weapon {weaponEntity} to index {detachedToIndex}");
+        if (weaponEntity == Entity.Null) {
+            Debug.Log("Weapon Entity was null. No need to detach!");
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+        DynamicBuffer<Inventory> inventory = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+
+        using (var ecb = new EntityCommandBuffer(Allocator.Temp)) {
+            // Clear Entire Weapon
+            ecb.RemoveComponent<EquippedGun>(playerSingleton.PlayerEntity);
+            ecb.AddBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+
+            ecb.SetComponent(weaponEntity, new Item {
+                isEquipped = false,
+                itemType = ItemType.WEAPON,
+                slot = detachedToIndex,
+                onGround = false,
+                quantity = 1,
+                isStackable = false
+            });
+
+            DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(weaponEntity);
+            foreach (Child attachment in attachments) {
+                if (entityManager.HasComponent<AttachmentTag>(attachment.Value)) {
+                    ecb.SetComponent(attachment.Value, new Item {
+                        isEquipped = false,
+                        itemType = ItemType.ATTACHMENT,
+                        slot = -1,
+                        onGround = false,
+                        quantity = 1,
+                        isStackable = false
+                    });
+                }
+            }
+
+            ecb.AddComponent<DisableSpriteRendererRequest>(weaponEntity);
+            ecb.Playback(entityManager);
+        }
+
+        entityManager.SetComponentData(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+    }
+
+    private void EquipWeapon(Entity weaponEntity) {
+        Debug.Log($"Equipping weapon {weaponEntity}");
+        if (weaponEntity == Entity.Null) {
+            Debug.Log("Weapon Entity was null. No need to equip!");
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+
+        using (var ecb = new EntityCommandBuffer(Allocator.Temp)) {
+            ecb.AppendToBuffer(playerSingleton.PlayerEntity, new EquippedGun { GunEntity = weaponEntity });
+            ecb.SetComponent(weaponEntity, new Item {
+                isEquipped = true,
+                itemType = ItemType.WEAPON,
+                slot = 20, // 20 always main weapon slot
+                onGround = false,
+                quantity = 1,
+                isStackable = false
+            });
+            //ecb.AppendToBuffer(playerSingleton.PlayerEntity, new Inventory { itemEntity = weaponEntity });
+
+            DynamicBuffer<Child> attachments = entityManager.GetBuffer<Child>(weaponEntity);
+            int itemSlot = 16;
+            foreach (Child attachment in attachments) {
+                if (entityManager.HasComponent<AttachmentTag>(attachment.Value)) {
+                    ecb.SetComponent(attachment.Value, new Item {
+                        isEquipped = true,
+                        itemType = ItemType.ATTACHMENT,
+                        slot = itemSlot,
+                        onGround = false,
+                        quantity = 1,
+                        isStackable = false
+                    });
+                    itemSlot++;
+                }
+            }
+
+            ecb.AddComponent<EnableSpriteRendererRequest>(weaponEntity);
+            ecb.Playback(entityManager);
+        }
+
+        entityManager.SetComponentData(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+    }
+
+    private void DetachAttachmentFromWeapon(Entity attachmentEntity) {
+        Debug.Log($"Detaching attachment {attachmentEntity} from its parent weapon.");
+
+        if (attachmentEntity == Entity.Null) {
+            Debug.Log("Attachment Entity was null. No need to detach!");
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+
+        if (equippedGuns.IsEmpty) {
+            Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
+            return;
+        }
+
+        using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
+            commandBuffer.RemoveComponent<Parent>(attachmentEntity);
+            commandBuffer.Playback(entityManager);
+        }
+
+        DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+        inventoryBuffer.Add(new Inventory { itemEntity = attachmentEntity });
+
+        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
+        attachmentSpriteRenderer.enabled = false;
+
+        Debug.Log($"Successfully detached and moved attachment {attachmentEntity} to inventory.");
+    }
+
+    private void AttachAttachmentToWeapon(Entity attachmentEntity) {
+        Debug.Log($"Attaching attachment {attachmentEntity} to weapon based");
+        if (attachmentEntity == Entity.Null) {
+            Debug.Log("Attachment Entity was null. No need to attach!");
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+        var muzzlePointTransform = entityManager.GetComponentData<MuzzlePointTransform>(equippedGuns[0].GunEntity);
+        var scopePointTransform = entityManager.GetComponentData<ScopePointTransform>(equippedGuns[0].GunEntity);
+        var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachmentEntity);
+
+        if (equippedGuns.IsEmpty) {
+            Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
+            return;
+        }
+
+        using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
+            commandBuffer.AddComponent(attachmentEntity, new Parent { Value = equippedGuns[0].GunEntity });
+
+            // set offsets of a weapon
+            switch (attachmentType.attachmentType) {
+                case AttachmentType.Scope: {
+                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                        scopePointTransform.position,
+                        scopePointTransform.rotation,
+                        1.0f
+                    ));
+                    break;
+                }
+                case AttachmentType.Barrel: {
+                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
+                        muzzlePointTransform.position,
+                        muzzlePointTransform.rotation,
+                        1.0f
+                    ));
+                    break;
+                }
+            }
+
+            commandBuffer.Playback(entityManager);
+        }
+
+        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
+        attachmentSpriteRenderer.enabled = true;
+
+        DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
+
+        int indexToRemove = -1;
+
+        for (int i = 0; i < inventoryBuffer.Length; i++) {
+            if (inventoryBuffer[i].itemEntity == attachmentEntity) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove != -1) {
+            inventoryBuffer.RemoveAt(indexToRemove);
+        }
+    }
+
+    public Entity FindItemEntityFromIndex(int index) {
+        EntityQuery itemQuery = entityManager.CreateEntityQuery(typeof(Item));
+
+        Entity entity1 = Entity.Null;
+        NativeArray<Entity> allItemEntities = itemQuery.ToEntityArray(Allocator.Temp);
+        foreach (Entity currentEntity in allItemEntities) {
+            if (!entityManager.HasComponent<Item>(currentEntity)) continue;
+
+            Item itemComponent = entityManager.GetComponentData<Item>(currentEntity);
+            //Debug.Log($"Found item in slot {itemComponent.slot} - Current index: {currentEntity.Index}");
+
+            if (itemComponent.slot == index) {
+                entity1 = currentEntity;
+            }
+
+            if (entity1 != Entity.Null) {
+                break;
+            }
+        }
+
+        allItemEntities.Dispose();
+        return entity1;
     }
 
     public Entity FindItemAtIndexFromWeapon(Entity weaponEntity, int slotIndex) {
         Entity item = Entity.Null;
-        
+
         DynamicBuffer<Child> attachmentsBuffer = entityManager.GetBuffer<Child>(weaponEntity);
         foreach (Child attachment in attachmentsBuffer) {
             if (entityManager.HasComponent<Item>(attachment.Value)) {
@@ -352,14 +763,14 @@ public class UIController : MonoBehaviour {
 
         return item;
     }
-    
+
     public Entity FindItemAtIndex(int slotIndex) {
         Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
         PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
         DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
         Entity item = Entity.Null;
-        
+
         for (int i = 0; i < inventoryBuffer.Length; i++) {
             Item itemData = entityManager.GetComponentData<Item>(inventoryBuffer[i].itemEntity);
             if (itemData.slot == slotIndex) {
@@ -369,6 +780,325 @@ public class UIController : MonoBehaviour {
         }
 
         return item;
+    }
+
+    private Vector2 ClampToScreen(Vector2 position, RectTransform tooltipRect) {
+        Vector2 screenBounds = new Vector2(Screen.width, Screen.height);
+        Vector2 tooltipSize = tooltipRect.sizeDelta;
+
+        float clampedX = Mathf.Clamp(position.x, tooltipSize.x / 2, screenBounds.x - tooltipSize.x / 2);
+        float clampedY = Mathf.Clamp(position.y, tooltipSize.y / 2, screenBounds.y - tooltipSize.y / 2);
+
+        return new Vector2(clampedX, clampedY);
+    }
+
+    public void ShowTooltip(Vector2 position, int slotIndex) {
+        Debug.Log($"[Tooltip]: Show tooltip at {slotIndex}");
+        Entity item = FindItemAtIndex(slotIndex);
+        if (item != Entity.Null) {
+            var itemData = entityManager.GetComponentData<Item>(item);
+            switch (itemData.itemType) {
+                case ItemType.WEAPON: {
+                    WeaponData weaponData = entityManager.GetComponentData<WeaponData>(item);
+                    weaponName.text = weaponData.weaponName.ToString();
+                    SetupWeaponTooltip(weaponData);
+                    break;
+                }
+                case ItemType.ATTACHMENT: {
+                    AttachmentComponent attachmentComponent = entityManager.GetComponentData<AttachmentComponent>(item);
+                    weaponName.text = attachmentComponent.attachmentName.ToString();
+                    SetupAttachmentTooltip(attachmentComponent);
+                    break;
+                }
+            }
+
+            tooltipPanel.SetActive(true);
+            RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+            tooltipRect.position = ClampToScreen(position, tooltipRect);
+            return;
+        }
+
+        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
+        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
+
+        if (!equippedGuns.IsEmpty && slotIndex is 16 or 17 or 18 or 19) {
+            Entity foundAttachment = FindItemAtIndexFromWeapon(equippedGuns[0].GunEntity, slotIndex);
+            if (foundAttachment != Entity.Null) {
+                var attachmentComponent = entityManager.GetComponentData<AttachmentComponent>(foundAttachment);
+
+                SetupAttachmentTooltip(attachmentComponent);
+            }
+        }
+
+        tooltipPanel.SetActive(true);
+        RectTransform tooltipRect2 = tooltipPanel.GetComponent<RectTransform>();
+        tooltipRect2.position = ClampToScreen(position, tooltipRect2);
+    }
+
+    public void SetupWeaponTooltip(WeaponData weaponData) {
+        ClearText(tierModifier);
+        ClearText(damageModifier);
+        ClearText(attackSpeedModifier);
+        ClearText(recoilModifier);
+        ClearText(spreadModifier);
+        ClearText(projectilePerShotModifier);
+        ClearText(reloadSpeedModifier);
+        ClearText(ammoCapacityModifier);
+        ClearText(bonusModifier_1);
+        ClearText(bonusModifier_2);
+        ClearText(bonusModifier_3);
+
+        float startX = 9f;
+        float startY = 144.5f;
+        float stepY = -30f;
+
+        weaponName.text = weaponData.weaponName.ToString();
+        Canvas.ForceUpdateCanvases();
+
+        // Current position tracker
+        Vector2 currentPosition = new Vector2(startX, startY);
+        float totalHeight = 150f + weaponName.rectTransform.rect.height;
+
+        SetModifier(
+            tierModifier,
+            "[Tier 10] [Rare]",
+            1,
+            ref currentPosition,
+            stepY,
+            ref totalHeight
+        );
+
+        if (weaponData.damage != 0) {
+            SetModifier(
+                damageModifier,
+                $"Adds Damage: {weaponData.damage}",
+                weaponData.damage,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.attackSpeed != 0) {
+            SetModifier(
+                attackSpeedModifier,
+                $"Adds Attack Speed: {weaponData.attackSpeed}",
+                weaponData.attackSpeed,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.recoilAmount != 0) {
+            SetModifier(
+                recoilModifier,
+                $"Recoil: {weaponData.recoilAmount}",
+                weaponData.recoilAmount,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.spreadAmount != 0) {
+            SetModifier(
+                spreadModifier,
+                $"Spread: {weaponData.spreadAmount}",
+                weaponData.spreadAmount,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.bulletsPerShot != 0) {
+            SetModifier(
+                projectilePerShotModifier,
+                $"Projectile per Shot: {weaponData.bulletsPerShot}",
+                weaponData.bulletsPerShot,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.reloadSpeed != 0) {
+            SetModifier(
+                reloadSpeedModifier,
+                $"Reload Speed: {weaponData.reloadSpeed}",
+                weaponData.reloadSpeed,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (weaponData.ammoCapacity != 0) {
+            SetModifier(
+                ammoCapacityModifier,
+                $"Ammo Capacity: {weaponData.ammoCapacity}",
+                weaponData.ammoCapacity,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        SetModifier(bonusModifier_1, "Poison enemies", 1, ref currentPosition, stepY, ref totalHeight); // Replace with actual bonuses as needed
+        SetModifier(bonusModifier_2, "Projectiles explodes on impact", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_3, "TEST BONUS 5", 1, ref currentPosition, stepY, ref totalHeight);
+        RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+        tooltipRect.sizeDelta = new Vector2(tooltipRect.sizeDelta.x, totalHeight);
+    }
+
+    public void SetupAttachmentTooltip(AttachmentComponent attachmentComponent) {
+        // Clear any previous content
+        ClearText(tierModifier);
+        ClearText(damageModifier);
+        ClearText(attackSpeedModifier);
+        ClearText(recoilModifier);
+        ClearText(spreadModifier);
+        ClearText(projectilePerShotModifier);
+        ClearText(reloadSpeedModifier);
+        ClearText(ammoCapacityModifier);
+        ClearText(bonusModifier_1);
+        ClearText(bonusModifier_2);
+        ClearText(bonusModifier_3);
+
+        // Starting positions for the tooltip items
+        float startX = 35f;
+        float startY = 135.0f;
+        float stepY = -30f; // Decrease by 30 for each item
+
+        weaponName.text = attachmentComponent.attachmentName.ToString();
+        Canvas.ForceUpdateCanvases();
+
+        // Current position tracker
+        Vector2 currentPosition = new Vector2(startX, startY);
+        float totalHeight = 150f + weaponName.rectTransform.rect.height;
+
+        // Set and position tier and stats
+        SetModifier(
+            tierModifier,
+            "[Tier 10] [Rare]",
+            1,
+            ref currentPosition,
+            stepY,
+            ref totalHeight
+        );
+
+        if (attachmentComponent.damage != 0) {
+            SetModifier(
+                damageModifier,
+                $"Adds Damage: {attachmentComponent.damage}",
+                attachmentComponent.damage,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.attackSpeed != 0) {
+            SetModifier(
+                attackSpeedModifier,
+                $"Adds Attack Speed: {attachmentComponent.attackSpeed}",
+                attachmentComponent.attackSpeed,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.recoilAmount != 0) {
+            SetModifier(
+                recoilModifier,
+                $"Adds Recoil: {attachmentComponent.recoilAmount}",
+                attachmentComponent.recoilAmount,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.spreadAmount != 0) {
+            SetModifier(
+                spreadModifier,
+                $"Adds Spread: {attachmentComponent.spreadAmount}",
+                attachmentComponent.spreadAmount,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.bulletsPerShot != 0) {
+            SetModifier(
+                projectilePerShotModifier,
+                $"Adds Projectile per Shot: {attachmentComponent.bulletsPerShot}",
+                attachmentComponent.bulletsPerShot,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.reloadSpeed != 0) {
+            SetModifier(
+                reloadSpeedModifier,
+                $"Reload Speed: {attachmentComponent.reloadSpeed}",
+                attachmentComponent.reloadSpeed,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        if (attachmentComponent.ammoCapacity != 0) {
+            SetModifier(
+                ammoCapacityModifier,
+                $"Adds Ammo Capacity: {attachmentComponent.ammoCapacity}",
+                attachmentComponent.ammoCapacity,
+                ref currentPosition,
+                stepY,
+                ref totalHeight
+            );
+        }
+
+        SetModifier(bonusModifier_1, "Attachment Bonus Test 1", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_2, "Adds +3 projectile", 1, ref currentPosition, stepY, ref totalHeight);
+        SetModifier(bonusModifier_3, "Adds +35 magazine capacity", 1, ref currentPosition, stepY, ref totalHeight);
+        RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
+        tooltipRect.sizeDelta = new Vector2(tooltipRect.sizeDelta.x, totalHeight);
+    }
+
+    private void SetModifier(TMP_Text modifier, string text, float value, ref Vector2 position, float stepY, ref float height) {
+        //Debug.Log("Set Modifier Text"+ text);
+        if (value != 0) {
+            modifier.text = text;
+            modifier.gameObject.SetActive(true); // Ensure the modifier is visible
+            modifier.rectTransform.localPosition = position;
+            position.y += stepY; // Move to the next line
+
+            Canvas.ForceUpdateCanvases(); // Force a UI update to get accurate dimensions
+            float currentHeight = modifier.rectTransform.rect.height;
+            height += currentHeight;
+            //Debug.Log($"Set Modifier: {text}, Total Height: {height}, Current Height: {currentHeight}");
+        }
+        else {
+            modifier.gameObject.SetActive(false); // Hide unused modifiers
+        }
+    }
+
+    private void ClearText(TMP_Text modifier) {
+        modifier.text = string.Empty;
+        modifier.gameObject.SetActive(false);
+    }
+
+
+    public void HideTooltip() {
+        tooltipPanel.SetActive(false);
     }
 
     public void DropItemAtIndexToGround(int slotIndex) {
@@ -424,6 +1154,7 @@ public class UIController : MonoBehaviour {
                     if (indexToRemove != -1) {
                         inventoryBuffer.RemoveAt(indexToRemove);
                     }
+
                     commandBuffer.RemoveComponent<EquippedGun>(playerSingleton.PlayerEntity);
                     commandBuffer.AddBuffer<EquippedGun>(playerSingleton.PlayerEntity);
                     commandBuffer.AddComponent<DroppedItemTag>(equippedGuns[0].GunEntity);
@@ -444,8 +1175,9 @@ public class UIController : MonoBehaviour {
                         Debug.LogWarning("Attachment from item at index does not found");
                         break;
                     }
+
                     GunAttachmentHelper.RequestRemoveAttachment(equippedGuns[0].GunEntity, foundAttachment);
-                    
+
                     commandBuffer.AddComponent<DroppedItemTag>(foundAttachment);
                     commandBuffer.SetComponent(foundAttachment, new LocalTransform {
                         Position = playerTransform.Position,
@@ -472,7 +1204,7 @@ public class UIController : MonoBehaviour {
                     itemData.onGround = true;
                     itemData.isEquipped = false;
                     commandBuffer.SetComponent(itemAtIndex, itemData);
-                    
+
                     SpriteRenderer spriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(itemAtIndex);
                     spriteRenderer.enabled = true;
 
@@ -483,7 +1215,7 @@ public class UIController : MonoBehaviour {
                     });
                     commandBuffer.AddComponent<DroppedItemTag>(itemAtIndex);
                     commandBuffer.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = true });
-                    
+
                     DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
 
                     int indexToRemove = -1;
@@ -498,172 +1230,15 @@ public class UIController : MonoBehaviour {
                     if (indexToRemove != -1) {
                         inventoryBuffer.RemoveAt(indexToRemove);
                     }
+
                     break;
                 }
             }
-            
+
             commandBuffer.Playback(entityManager);
         }
     }
 
-    public void DropWeaponWithAttachments(Entity weaponEntity, Vector2 dropPosition) {
-        
-    }
-    
-    private void SwapEntitySlots(Entity entity1, Entity entity2, SlotType slotType1, SlotType slotType2) {
-        Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
-        Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
-
-        Debug.Log($"Before Swap - Item1 Slot: {itemComp1.slot} (Type: {slotType1}), Item2 Slot: {itemComp2.slot} (Type: {slotType2})");
-
-        (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
-
-        entityManager.SetComponentData(entity1, itemComp1);
-        entityManager.SetComponentData(entity2, itemComp2);
-
-        HandleParentChildRelationships(entity1, itemComp1, slotType1, entity2, itemComp2, slotType2);
-
-        Debug.Log($"After Swap - Item1 Slot: {itemComp1.slot}, Item2 Slot: {itemComp2.slot}");
-    }
-
-    private void MoveEntityToSlot(Entity entity, int newSlot, SlotType sourceSlotType, SlotType destinationSlotType) {
-        Item itemComp = entityManager.GetComponentData<Item>(entity);
-
-        Debug.Log($"Before Move - Item Slot: {itemComp.slot} (Type: {sourceSlotType}), Moving to Slot: {newSlot} (Type: {destinationSlotType})");
-
-        itemComp.slot = newSlot;
-
-        entityManager.SetComponentData(entity, itemComp);
-
-        HandleParentChildRelationships(entity, itemComp, sourceSlotType, Entity.Null, default, destinationSlotType);
-
-        Debug.Log($"After Move - Item Slot: {itemComp.slot}");
-    }
-    
-    private void HandleParentChildRelationships(Entity entity1, Item itemComp1, SlotType slotType1, Entity entity2, Item itemComp2, SlotType slotType2) {
-        if (IsAttachmentSlot(slotType1) && !IsAttachmentSlot(slotType2)) {
-            DetachItemFromWeapon(entity1);
-        }
-
-        if (IsAttachmentSlot(slotType2) && !IsAttachmentSlot(slotType1)) {
-            AttachItemToWeapon(entity1, slotType2);
-        }
-
-        if (IsAttachmentSlot(slotType1) && !IsAttachmentSlot(slotType2)) {
-            AttachItemToWeapon(entity2, slotType1);
-        }
-
-        if (slotType1 == SlotType.Item && IsWeaponSlot(slotType2)) {
-            Debug.Log("From inventory to weapon moving happened");
-        }
-    }
-    
-    private bool IsAttachmentSlot(SlotType slotType) {
-        return slotType == SlotType.Muzzle_Attachment ||
-               slotType == SlotType.Scope_Attachment ||
-               slotType == SlotType.Magazine_Attachment ||
-               slotType == SlotType.Ammunition_Attachment;
-    }
-
-    private bool IsWeaponSlot(SlotType slotType) {
-        return slotType == SlotType.Weapon;
-    }
-    
-    private void DetachItemFromWeapon(Entity attachmentEntity) {
-        Debug.Log($"Detaching attachment {attachmentEntity} from its parent weapon.");
-        
-        if (attachmentEntity == Entity.Null) {
-            Debug.Log("Attachment Entity was null. No need to detach!");
-            return;
-        }
-        
-        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
-        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
-        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
-
-        if (equippedGuns.IsEmpty) {
-            Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
-            return;
-        }
-
-        using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
-            commandBuffer.RemoveComponent<Parent>(attachmentEntity);
-            commandBuffer.Playback(entityManager);
-        }
-    
-        DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
-        inventoryBuffer.Add(new Inventory { itemEntity = attachmentEntity });
-
-        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
-        attachmentSpriteRenderer.enabled = false;
-        
-        Debug.Log($"Successfully detached and moved attachment {attachmentEntity} to inventory.");
-    }
-
-    private void AttachItemToWeapon(Entity attachmentEntity, SlotType attachmentSlotType) {
-        Debug.Log($"Attaching attachment {attachmentEntity} to weapon based on SlotType {attachmentSlotType}.");
-        if (attachmentEntity == Entity.Null) {
-            Debug.Log("Attachment Entity was null. No need to attach!");
-            return;
-        }
-
-        Entity playerSingletonEntity = entityManager.CreateEntityQuery(typeof(PlayerSingleton)).GetSingletonEntity();
-        PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
-        DynamicBuffer<EquippedGun> equippedGuns = entityManager.GetBuffer<EquippedGun>(playerSingleton.PlayerEntity);
-        var muzzlePointTransform = entityManager.GetComponentData<MuzzlePointTransform>(equippedGuns[0].GunEntity);
-        var scopePointTransform = entityManager.GetComponentData<ScopePointTransform>(equippedGuns[0].GunEntity);
-        var attachmentType = entityManager.GetComponentData<AttachmentTypeComponent>(attachmentEntity);
-        
-        if (equippedGuns.IsEmpty) {
-            Debug.Log("WEAPON WAS NOT EQUIPPED ATTACHMENT SHOULD NOT BE ATTACHED!!!");
-            return;
-        }
-
-        using (var commandBuffer = new EntityCommandBuffer(Allocator.Temp)) {
-            commandBuffer.AddComponent(attachmentEntity, new Parent { Value = equippedGuns[0].GunEntity });
-            
-            // set offsets of a weapon
-            switch (attachmentType.attachmentType) {
-                case AttachmentType.Scope: {
-                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
-                        scopePointTransform.position,
-                        scopePointTransform.rotation,
-                        1.0f
-                    ));
-                    break;
-                }
-                case AttachmentType.Barrel: {
-                    commandBuffer.SetComponent(attachmentEntity, LocalTransform.FromPositionRotationScale(
-                        muzzlePointTransform.position,
-                        muzzlePointTransform.rotation,
-                        1.0f
-                    ));
-                    break;
-                }
-            }
-            
-            commandBuffer.Playback(entityManager);
-        }
-    
-        var attachmentSpriteRenderer = entityManager.GetComponentObject<SpriteRenderer>(attachmentEntity);
-        attachmentSpriteRenderer.enabled = true;
-        
-        DynamicBuffer<Inventory> inventoryBuffer = entityManager.GetBuffer<Inventory>(playerSingleton.PlayerEntity);
-
-        int indexToRemove = -1;
-
-        for (int i = 0; i < inventoryBuffer.Length; i++) {
-            if (inventoryBuffer[i].itemEntity == attachmentEntity) {
-                indexToRemove = i;
-                break;
-            }
-        }
-
-        if (indexToRemove != -1) {
-            inventoryBuffer.RemoveAt(indexToRemove);
-        }
-    }
-    
     public void ClearInventory() {
         foreach (var slotData in _inventorySlots.Values) {
             InventorySlot slot = slotData.SlotObject.GetComponent<InventorySlot>();
@@ -674,7 +1249,7 @@ public class UIController : MonoBehaviour {
         }
     }
 
-    public bool AssignItemToSlot(int slotIndex, InventoryItem item, SlotType slotType) {
+    public bool AssignItemToSlot(int slotIndex, InventoryItem item, SlotType slotType, ItemType currentItemType) {
         if (_inventorySlots.TryGetValue(slotIndex, out var foundSlotItem)) {
             InventorySlot slot = foundSlotItem.SlotObject.GetComponent<InventorySlot>();
 
@@ -683,28 +1258,16 @@ public class UIController : MonoBehaviour {
                 slot.RemoveItem();
             }
 
-            slot.AssignItem(item);
+            slot.AssignItem(item, currentItemType);
             return true;
         }
-        else {
-            Debug.LogError($"[AssignItemToSlot]: Slot index {slotIndex} not found.");
-            return false;
-        }
+
+        Debug.LogError($"[AssignItemToSlot]: Slot index {slotIndex} not found.");
+        return false;
     }
+
     public Canvas GetInventoryCanvas() {
         return inventoryCanvas;
-    }
-    
-    public Canvas GetScreenSpaceCanvas() {
-        if (_screenSpaceCanvasObject == null) {
-            return null;
-        }
-
-        return _screenSpaceCanvasObject.GetComponent<Canvas>();
-    }
-    
-    public Canvas GetCanvas() {
-        return GetInventoryCanvas();
     }
 
     private void CreateHealthBar() {
@@ -798,16 +1361,6 @@ public class UIController : MonoBehaviour {
         rectTransform.pivot = settings.Pivot;
         rectTransform.anchoredPosition = settings.AnchoredPosition;
         _texts.Add(settings.TextType, newText);
-    }
-
-    public void UpdateTextPosition(TextType type, Vector2 anchoredPosition) {
-        if (_texts.TryGetValue(type, out var text)) {
-            RectTransform rectTransform = text.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = anchoredPosition;
-            rectTransform.anchorMin = anchoredPosition;
-            rectTransform.anchorMax = anchoredPosition;
-            rectTransform.pivot = anchoredPosition;
-        }
     }
 
     public void SetTextValue(TextType type, string value) {
