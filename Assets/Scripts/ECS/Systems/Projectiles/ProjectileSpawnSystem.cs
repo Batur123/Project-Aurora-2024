@@ -1,4 +1,5 @@
-﻿using ScriptableObjects;
+﻿using ECS.Components;
+using ScriptableObjects;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

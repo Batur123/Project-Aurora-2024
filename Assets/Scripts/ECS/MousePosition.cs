@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;

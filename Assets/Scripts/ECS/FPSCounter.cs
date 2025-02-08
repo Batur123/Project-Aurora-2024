@@ -22,7 +22,7 @@ namespace ECS {
             float fps = 1.0f / deltaTime;
 
             // Display the FPS on the screen
-            GUI.Label(new Rect(10, 10, 100, 50), "FPS: " + Mathf.Ceil(fps), guiStyle);
+            GUI.Label(new Rect(10, 0, 100, 50), "FPS: " + Mathf.Ceil(fps), guiStyle);
         }
     }
 

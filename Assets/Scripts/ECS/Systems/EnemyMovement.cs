@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -100,15 +101,21 @@ namespace ECS.Systems {
             }.ScheduleParallel();
         }
     }
-    
+
     [BurstCompile]
     [WithAll(typeof(EnemyTag), typeof(IsSpawned))]
-    [WithNone(typeof(DisabledEnemyTag))]
+    [WithNone(typeof(DisabledEnemyTag), typeof(Disabled))]
     public partial struct MoveEnemyJob : IJobEntity {
         public float3 PlayerPosition;
         public float Speed;
 
-        private void Execute(ref PhysicsVelocity velocity, in LocalTransform enemyTransform) {
+        private void Execute(
+            in EnemyData enemyData,
+            in EnemyTag enemyTag,
+            in IsSpawned isSpawnedTag,
+            ref PhysicsVelocity velocity,
+            in LocalTransform enemyTransform
+        ) {
             float3 epos = enemyTransform.Position;
             float3 dir = PlayerPosition - epos;
 

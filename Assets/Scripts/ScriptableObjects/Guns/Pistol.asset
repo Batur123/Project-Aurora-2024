@@ -12,15 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e3392e2b4cd491fa27a19c7f98234b8, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: 
-  gunName: Pistol
-  ammoCapacity: 12
-  durability: 5
-  damage: 3
-  reloadTime: 5
   gunType: 0
+  gunName: Pistol
   projectileType: 1
-  attackRate: 1
-  recoilAmount: 0.1
-  spreadAmount: 0.1
-  lastAttackTime: 0
-  bulletsPerShot: 1
+  minAmmoCapacity: 13
+  maxAmmoCapacity: 25
+  minDamage: 1
+  maxDamage: 5
+  minAttackSpeed: 1
+  maxAttackSpeed: 3
+  minRecoilAmount: 1
+  maxRecoilAmount: 3
+  minSpreadAmount: 1
+  maxSpreadAmount: 3
+  minBulletsPerShot: 1
+  maxBulletsPerShot: 3
+  minReloadSpeed: 1
+  maxReloadSpeed: 3
+  minPiercingBulletsPerShot: 1
+  maxPiercingBulletsPerShot: 3

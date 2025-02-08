@@ -1,4 +1,5 @@
 ﻿using ECS.Authorings.BaseAttachments;
+using ECS.Components;
 using Unity.Entities;
 using Unity.Collections;
 using UnityEngine;

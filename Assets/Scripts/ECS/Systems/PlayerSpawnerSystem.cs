@@ -1,4 +1,5 @@
-﻿using ScriptableObjects;
+﻿using ECS.Components;
+using ScriptableObjects;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -23,7 +24,7 @@ namespace ECS.Systems {
 
                     
                     Entity playerEntity = ecb.Instantiate(spawner.ValueRO.prefab);
-          
+                    
                     ecb.SetComponent(playerEntity, LocalTransform.FromPositionRotationScale(
                         //new float3(10, 0, 0),
                         new float3(0, 0, 0),
@@ -62,7 +63,7 @@ namespace ECS.Systems {
                     ecb.AddComponent<ReloadTimer>(playerEntity);
                     
                     ecb.AddBuffer<Inventory>(playerEntity);
-                    
+
                     Entity singletonEntity = ecb.CreateEntity();
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });
                     ecb.SetName(singletonEntity, "Player Singleton Entity");
@@ -105,6 +106,13 @@ namespace ECS.Systems {
                         position = new float3(-3,-1,0),
                         variantId = 0,
                     });
+                    
+                    
+                    ecb.AddComponent<ParticleSpawnerRequestTag>(playerEntity);
+                    ecb.SetComponent(playerEntity, new ParticleSpawnerRequestTag {
+                        particleType = ParticleType.Rain
+                    });
+                    
                     break;
                 }
 

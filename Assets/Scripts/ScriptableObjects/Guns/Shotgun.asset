@@ -12,15 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e3392e2b4cd491fa27a19c7f98234b8, type: 3}
   m_Name: Shotgun
   m_EditorClassIdentifier: 
-  gunName: SG-Combat Shotgun
   gunType: 1
+  gunName: SG-Combat Shotgun
   projectileType: 1
-  ammoCapacity: 8
-  damage: 5
-  accuracy: 1
-  attackSpeed: 0.7
-  recoilAmount: 4
-  spreadAmount: 13
-  bulletsPerShot: 5
-  reloadSpeed: 1
-  piercingBulletsPerShot: 1
+  minAmmoCapacity: 10
+  maxAmmoCapacity: 35
+  minDamage: 9
+  maxDamage: 18
+  minAttackSpeed: 1
+  maxAttackSpeed: 2
+  minRecoilAmount: 1
+  maxRecoilAmount: 2
+  minSpreadAmount: 1
+  maxSpreadAmount: 2
+  minBulletsPerShot: 3
+  maxBulletsPerShot: 10
+  minReloadSpeed: 1
+  maxReloadSpeed: 2
+  minPiercingBulletsPerShot: 1
+  maxPiercingBulletsPerShot: 2

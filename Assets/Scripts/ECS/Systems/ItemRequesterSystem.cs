@@ -1,4 +1,5 @@
 ﻿using ECS.Bakers;
+using ECS.Components;
 using ScriptableObjects;
 using Unity.Burst;
 using Unity.Collections;
@@ -182,6 +183,59 @@ namespace ECS {
             ecb.Dispose();
         }
 
+        public static BaseWeaponData GetRandomStats(GunTemplateBlob template)
+        {
+            BaseWeaponData stats = new BaseWeaponData {
+                minAmmoCapacity = template.minAmmoCapacity,
+                maxAmmoCapacity = template.maxAmmoCapacity,
+                ammoCapacity = GetWeightedRandomValue(template.minAmmoCapacity, template.maxAmmoCapacity, 2.5f),
+
+                minDamage = template.minDamage,
+                maxDamage = template.maxDamage,
+                damage = GetWeightedRandomValue(template.minDamage, template.maxDamage, 2.5f),
+
+                minAttackSpeed = template.minAttackSpeed,
+                maxAttackSpeed = template.maxAttackSpeed,
+                attackSpeed =  GetWeightedRandomValue(template.minAttackSpeed, template.maxAttackSpeed, 2.5f),
+
+                minRecoilAmount = template.minRecoilAmount,
+                maxRecoilAmount = template.maxRecoilAmount,
+                recoilAmount = GetWeightedRandomValue(template.minRecoilAmount, template.maxRecoilAmount, 2.5f),
+
+                minSpreadAmount = template.minSpreadAmount,
+                maxSpreadAmount = template.maxSpreadAmount,
+                spreadAmount = GetWeightedRandomValue(template.minSpreadAmount, template.maxSpreadAmount, 2.5f),
+
+                minBulletsPerShot = template.minBulletsPerShot,
+                maxBulletsPerShot = template.maxBulletsPerShot,
+                bulletsPerShot = GetWeightedRandomValue(template.minBulletsPerShot, template.maxBulletsPerShot, 3f),
+
+                minReloadSpeed = template.minReloadSpeed, 
+                maxReloadSpeed = template.maxReloadSpeed,
+                reloadSpeed =  GetWeightedRandomValue(template.minReloadSpeed, template.maxReloadSpeed, 2.5f),
+
+                minPiercingBulletsPerShot = template.minPiercingBulletsPerShot,
+                maxPiercingBulletsPerShot = template.maxPiercingBulletsPerShot,
+                piercingBulletsPerShot = GetWeightedRandomValue(template.minPiercingBulletsPerShot, template.maxPiercingBulletsPerShot, 2f)
+            };
+
+            return stats;
+        }
+
+        private static float GetWeightedRandomValue(float min, float max, float exponent = 2f)
+        {
+            float random = UnityEngine.Random.value;
+            float weighted = Mathf.Pow(random, exponent);
+            return Mathf.Lerp(min, max, weighted);
+        }
+
+        private static int GetWeightedRandomValue(int min, int max, float exponent = 2f)
+        {
+            float random = UnityEngine.Random.value;
+            float weighted = Mathf.Pow(random, exponent);
+            return Mathf.RoundToInt(Mathf.Lerp(min, max, weighted));
+        }
+        
         public static Entity GetRandomLoot(ref SystemState state) {
             // Guns
             SystemHandle gunLibrarySystemHandle = state.World.GetExistingSystem<GunLibrarySystem>();
@@ -199,6 +253,8 @@ namespace ECS {
             if (allWeapons.Count == 0 && allAttachments.Count == 0) {
                 //Debug.LogWarning("No loot available to select.");
                 lootWeights.Dispose();
+                allAttachments.Dispose();
+                allWeapons.Dispose();
                 return Entity.Null;
             }
             
@@ -233,6 +289,8 @@ namespace ECS {
             if (totalWeight <= 0f) {
                 //Debug.LogWarning("[Loot]: Total weight is zero, no loot can be selected.");
                 lootWeights.Dispose();
+                allAttachments.Dispose();
+                allWeapons.Dispose();
                 return Entity.Null;
             }
             
@@ -260,6 +318,8 @@ namespace ECS {
                 AttachmentTypeComponent attachmentTypeComponent = state.EntityManager.GetComponentData<AttachmentTypeComponent>(selectedEntity);
                 Debug.Log("Spawn loot: " + attachmentTypeComponent.attachmentType + " " + attachmentTypeComponent.variantId + " " + attachmentTypeComponent.lootWeight);
                 lootWeights.Dispose();
+                allAttachments.Dispose();
+                allWeapons.Dispose();
                 return selectedEntity;
             }
             
@@ -267,11 +327,15 @@ namespace ECS {
                 GunTypeComponent gunTypeComponent = state.EntityManager.GetComponentData<GunTypeComponent>(selectedEntity);
                 Debug.Log("Spawn loot: " + gunTypeComponent.gunType + " " + gunTypeComponent.variantId + " " + gunTypeComponent.lootWeight);
                 lootWeights.Dispose();
+                allAttachments.Dispose();
+                allWeapons.Dispose();
                 return selectedEntity;
             }
             
             Debug.LogWarning($"[Loot]: Random Loot is not spawned. Total Count {allWeapons.Count + allAttachments.Count}");
             lootWeights.Dispose();
+            allAttachments.Dispose();
+            allWeapons.Dispose();
             return Entity.Null;
         }
     }
@@ -281,6 +345,10 @@ namespace ECS {
     [UpdateAfter(typeof(AttachmentLibrarySystem))]
     [UpdateAfter(typeof(GunLibrarySystem))]
     public partial struct GunSpawnSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<SpawnGunRequest>();
+        }
+        
         public void OnUpdate(ref SystemState state) {
             SystemHandle gunLibrarySystemHandle = state.World.GetExistingSystem<GunLibrarySystem>();
             GunLibrarySystem gunLibrarySystemRef = state.World.Unmanaged.GetUnsafeSystemRef<GunLibrarySystem>(gunLibrarySystemHandle);
@@ -309,6 +377,9 @@ namespace ECS {
                 GunTemplateBlob gunBlob = gunBlobRef.templateBlob.Value;
 
                 Entity gunEntity = state.EntityManager.Instantiate(builtPrefab.prefab);
+
+                BaseWeaponData randomizedWeaponData = LootHelper.GetRandomStats(gunBlob);
+                Debug.Log(randomizedWeaponData);
                 
                 ecb.SetName(gunEntity, request.ValueRO.gunType.ToString());
 
@@ -331,30 +402,21 @@ namespace ECS {
                     variantId = 0
                 });
                 ecb.SetComponent(gunEntity, new AmmoComponent {
-                    capacity = gunBlob.ammoCapacity,
-                    currentAmmo = gunBlob.ammoCapacity,
+                    capacity = randomizedWeaponData.ammoCapacity,
+                    currentAmmo = randomizedWeaponData.ammoCapacity,
                     isReloading = false,
                 });
-                ecb.SetComponent(gunEntity, new BaseWeaponData {
-                    damage = gunBlob.damage,
-                    attackSpeed = gunBlob.attackSpeed,
-                    recoilAmount = gunBlob.recoilAmount,
-                    spreadAmount = gunBlob.spreadAmount,
-                    bulletsPerShot = gunBlob.bulletsPerShot,
-                    ammoCapacity = gunBlob.ammoCapacity,
-                    reloadSpeed = gunBlob.attackSpeed,
-                    piercingBulletsPerShot = gunBlob.piercingBulletsPerShot,
-                });
+                ecb.SetComponent(gunEntity, randomizedWeaponData);
                 ecb.SetComponent(gunEntity, new WeaponData {
                     weaponName = request.ValueRO.gunType.ToString(),
-                    damage = gunBlob.damage,
-                    attackSpeed = gunBlob.attackSpeed,
-                    recoilAmount = gunBlob.recoilAmount,
-                    spreadAmount = gunBlob.spreadAmount,
-                    bulletsPerShot = gunBlob.bulletsPerShot,
-                    ammoCapacity = gunBlob.ammoCapacity,
-                    reloadSpeed = gunBlob.attackSpeed,
-                    piercingBulletsPerShot = gunBlob.piercingBulletsPerShot,
+                    damage = randomizedWeaponData.damage,
+                    attackSpeed = randomizedWeaponData.attackSpeed,
+                    recoilAmount = randomizedWeaponData.recoilAmount,
+                    spreadAmount = randomizedWeaponData.spreadAmount,
+                    bulletsPerShot = randomizedWeaponData.bulletsPerShot,
+                    ammoCapacity = randomizedWeaponData.ammoCapacity,
+                    reloadSpeed = randomizedWeaponData.attackSpeed,
+                    piercingBulletsPerShot = randomizedWeaponData.piercingBulletsPerShot,
                 });
                 ecb.SetComponent(gunEntity, scopePointTransform);
                 ecb.SetComponent(gunEntity, muzzlePointTransform);
@@ -445,6 +507,7 @@ namespace ECS {
             {
                 ecb.AddBuffer<Child>(gunEntity);
             }
+            ecb.AddComponent<DisableSpriteRendererRequest>(attachmentEntity);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿/*
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -28,8 +29,14 @@ namespace ECS
             mainCam = Camera.main;
         }
 
-        void Update()
-        {
+        void Update() {
+            var playerQuery = entityManager.CreateEntityQuery(typeof(PlayerSingleton));
+            if (playerQuery.IsEmpty)
+            {
+                Debug.LogWarning("PlayerSingleton entity not found. Skipping health bar updates.");
+                return;
+            }
+            
             // 1) Get all enemies that have (EnemyTag, EnemyData, IsSpawned, LocalTransform)
             using (var enemyArray = entityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<EnemyTag>(),
@@ -38,6 +45,10 @@ namespace ECS
                     ComponentType.ReadOnly<LocalTransform>())
                 .ToEntityArray(Allocator.Temp))
             {
+                Entity playerSingletonEntity = playerQuery.GetSingletonEntity();
+                PlayerSingleton playerSingleton = entityManager.GetComponentData<PlayerSingleton>(playerSingletonEntity);
+                LocalTransform playerPosition = entityManager.GetComponentData<LocalTransform>(playerSingleton.PlayerEntity);
+                
                 // 2) Create bars for newly found entities
                 foreach (var enemy in enemyArray)
                 {
@@ -77,7 +88,7 @@ namespace ECS
                     Vector3 screenPos = mainCam.WorldToScreenPoint(worldPos);
 
                     // Update bar visuals
-                    UpdateHealthBar(enemy, enemyData.health, enemyData.maxHealth, screenPos);
+                    UpdateHealthBar(playerPosition, enemy, enemyData.health, enemyData.maxHealth, screenPos);
                 }
             }
         }
@@ -114,7 +125,7 @@ namespace ECS
         /// <summary>
         /// Update the bar's size, color, and position for a given enemy.
         /// </summary>
-        private void UpdateHealthBar(Entity enemy, float currentHealth, float maxHealth, Vector3 screenPos)
+        private void UpdateHealthBar(LocalTransform playerTransform, Entity enemy, float currentHealth, float maxHealth, Vector3 screenPos)
         {
             if (!healthBars.TryGetValue(enemy, out var barPair)) return;
 
@@ -138,6 +149,22 @@ namespace ECS
                 fgImage.color = Color.yellow;
             else
                 fgImage.color = Color.red;
+            
+            // Fix: Convert screen position to world position
+            Vector3 enemyWorldPosition = mainCam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, mainCam.nearClipPlane));
+            enemyWorldPosition.z = playerTransform.Position.z; // Match the player's Z-axis for 2D games
+
+            float distance = Vector3.Distance(playerTransform.Position, enemyWorldPosition);
+            float maxDistance = 15f;
+            float minAlpha = 0.05f; 
+            float alpha = Mathf.Clamp01(1 - (distance / maxDistance));
+
+            alpha = Mathf.Lerp(minAlpha, 1f, alpha); // Linearly interpolate between minAlpha and full opacity (1f)
+            var bgImage = bgRect.GetComponent<Image>();
+            bgImage.color = new Color(bgImage.color.r, bgImage.color.g, bgImage.color.b, alpha);
+
+            fgImage.color = new Color(fgImage.color.r, fgImage.color.g, fgImage.color.b, alpha);
         }
     }
 }
+*/

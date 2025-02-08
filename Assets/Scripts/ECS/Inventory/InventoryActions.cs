@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ECS.Components;
 using ScriptableObjects;
 using TMPro;
 using Unity.Collections;

@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -114,6 +115,17 @@ namespace ECS.Systems {
                 Linear = 0.9f,
                 Angular = 0.9f
             });
+            
+           //Entity healthBarEntity = ecb.Instantiate(chunkIndex, spawner.healthBarPrefab);
+           //ecb.AddComponent(chunkIndex, newEntity, new HealthBarEntity {
+           //    healthBarEntity = healthBarEntity
+           //});
+           //ecb.SetComponent(chunkIndex, healthBarEntity, LocalTransform.FromPositionRotationScale(
+           //    spawnPos3D,
+           //    quaternion.identity,
+           //    2.5f
+           //));
+            
             spawnerTime.nextSpawnTime = 0.05f;
         }
     }

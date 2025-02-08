@@ -1,14 +1,15 @@
-﻿using Unity.Entities;
-using UnityEditor;
+﻿using ECS.Components;
+using Unity.Entities;
 using UnityEngine;
 
-namespace ECS {
+namespace ECS.Bakers {
     public class EnemySpawnBaker : Baker<EnemySpawnerAuthoring> {
         public override void Bake(EnemySpawnerAuthoring authoring) {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             AddComponent(entity, new EntityData {
                 prefab = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
+                healthBarPrefab = GetEntity(authoring.healthBarPrefab, TransformUsageFlags.Dynamic),
             });
 
             AddComponent(entity, new SpawnerTime {
@@ -24,18 +25,6 @@ namespace ECS {
                 material = Material,
                 mesh = Mesh,
             });
-        }
-    }
-    
-    public class ItemSpawnBaker : Baker<ItemSpawnerAuthoring> {
-        public override void Bake(ItemSpawnerAuthoring authoring) {
-            var entity = GetEntity(TransformUsageFlags.Dynamic);
-
-            AddComponent(entity, new EntityData {
-                prefab = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic),
-            });
-            
-            AddComponent(entity, new ItemSpawner {});
         }
     }
 }

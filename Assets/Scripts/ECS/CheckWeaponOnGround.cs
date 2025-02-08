@@ -1,4 +1,5 @@
 ﻿using System;
+using ECS.Components;
 using ScriptableObjects;
 using Unity.Collections;
 using Unity.Entities;
@@ -11,9 +12,7 @@ namespace ECS {
     [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public partial struct CheckWeaponOnGroundTriggerSystem : ISystem {
         private ComponentLookup<PhysicsCollider> colliderLookup;
-        private ComponentLookup<PlayerData> playerDataLookup;
         private ComponentLookup<Item> itemLookup;
-        private ComponentLookup<AttachmentTypeComponent> attachmentTypeLookup;
         private BufferLookup<Child> childLookup;
         private ComponentLookup<AttachmentTag> attachmentTagLookup;
         private BufferLookup<Inventory> inventoryLookup;
@@ -22,9 +21,7 @@ namespace ECS {
             state.RequireForUpdate<SimulationSingleton>();
             state.RequireForUpdate<PlayerSingleton>();
             colliderLookup = state.GetComponentLookup<PhysicsCollider>(isReadOnly: true);
-            playerDataLookup = state.GetComponentLookup<PlayerData>(isReadOnly: false);
             itemLookup = state.GetComponentLookup<Item>(isReadOnly: false);
-            attachmentTypeLookup = state.GetComponentLookup<AttachmentTypeComponent>(isReadOnly: true);
             childLookup = state.GetBufferLookup<Child>(isReadOnly: true);
             attachmentTagLookup = state.GetComponentLookup<AttachmentTag>(isReadOnly: true);
             inventoryLookup = state.GetBufferLookup<Inventory>(isReadOnly: true);
@@ -35,19 +32,15 @@ namespace ECS {
             var hasPickedUpItem = new NativeReference<bool>(Allocator.TempJob); // Initialize the flag
 
             colliderLookup.Update(ref state);
-            playerDataLookup.Update(ref state);
             itemLookup.Update(ref state);
-            attachmentTypeLookup.Update(ref state);
             childLookup.Update(ref state);
             attachmentTagLookup.Update(ref state);
             inventoryLookup.Update(ref state);
 
             state.Dependency = new CheckTriggerEvents {
                 colliderLookup = colliderLookup,
-                playerDataLookup = playerDataLookup,
                 itemLookup = itemLookup,
                 attachmentTagLookup = attachmentTagLookup,
-                attachmentTypeLookup = attachmentTypeLookup,
                 childLookup = childLookup,
                 inventoryLookup = inventoryLookup,
                 entityManager = state.EntityManager,
@@ -86,9 +79,7 @@ namespace ECS {
 
         struct CheckTriggerEvents : ITriggerEventsJob {
             [ReadOnly] public ComponentLookup<PhysicsCollider> colliderLookup;
-            [ReadOnly] public ComponentLookup<PlayerData> playerDataLookup;
             [ReadOnly] public ComponentLookup<Item> itemLookup;
-            [ReadOnly] public ComponentLookup<AttachmentTypeComponent> attachmentTypeLookup;
             [ReadOnly] public ComponentLookup<AttachmentTag> attachmentTagLookup;
 
             [ReadOnly] public BufferLookup<Child> childLookup;
@@ -192,8 +183,6 @@ namespace ECS {
                         if (!itemLookup.HasComponent(attachmentEntity) || !attachmentTagLookup.HasComponent(attachmentEntity)) {
                             continue;
                         }
-
-                        var attachmentType = attachmentTypeLookup[attachmentEntity].attachmentType;
 
                         ecb.SetComponent(0, attachmentEntity, new Item {
                             isEquipped = true,
