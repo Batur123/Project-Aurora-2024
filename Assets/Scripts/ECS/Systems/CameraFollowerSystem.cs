@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Cinemachine;
 using Unity.Entities;
 using Unity.Transforms;

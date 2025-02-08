@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using ECS.Components;
+using Unity.Entities;
 
 namespace ECS.Bakers {
     public class ProjectileSpawnBaker : Baker<ProjectileSpawnerAuthoring> {

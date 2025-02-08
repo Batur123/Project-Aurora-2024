@@ -1,4 +1,5 @@
 ﻿using ECS;
+using ECS.Components;
 using UnityEngine;
 
 public enum SlotType

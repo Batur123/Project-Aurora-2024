@@ -1,4 +1,5 @@
-﻿using ScriptableObjects;
+﻿using ECS.Components;
+using ScriptableObjects;
 using UnityEngine;
 
 namespace ECS.Authorings.BaseAttachments {

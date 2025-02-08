@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -13,7 +14,7 @@ namespace ECS.Systems.Projectiles {
         {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
             foreach (var (projectileComponent, entity) in
-                     SystemAPI.Query<RefRW<ProjectileComponent>>().WithNone<GrenadeComponent>()
+                     SystemAPI.Query<RefRW<ProjectileComponent>>().WithNone<GrenadeComponent, DisabledProjectileTag>()
                          .WithEntityAccess())
             {
                 if (entity == Entity.Null || !state.EntityManager.HasComponent<ProjectileComponent>(entity)) {
@@ -23,11 +24,12 @@ namespace ECS.Systems.Projectiles {
                 projectileComponent.ValueRW.Lifetime -= SystemAPI.Time.DeltaTime;
                 if (projectileComponent.ValueRW.Lifetime <= 0)
                 {
-                    ecb.DestroyEntity(entity);
+                    ecb.AddComponent<DisabledProjectileTag>(entity);
                 }
             }
 
             ecb.Playback(state.EntityManager);
+            ecb.Dispose();
         }
     }
 }

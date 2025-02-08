@@ -1,5 +1,6 @@
 ﻿using System;
 using ECS;
+using ECS.Components;
 using UnityEngine;
 
 namespace ScriptableObjects {
@@ -9,23 +10,31 @@ namespace ScriptableObjects {
         public GunType gunType;
         public string gunName;
         public ProjectileType projectileType;
-        public int ammoCapacity = 10;
-        public float damage = 5;
-        public float accuracy = 1;
-        public float attackSpeed = 1;
-        public float recoilAmount = 1;
-        public float spreadAmount = 1;
-        public int bulletsPerShot = 1;
-        public float reloadSpeed = 1;
-        public int piercingBulletsPerShot = 1;
-    }
 
-    public enum GunType
-    {
-        Pistol,
-        Shotgun,
-        Rifle,
-        GrenadeLauncher,
+        public int minAmmoCapacity = 10;
+        public int maxAmmoCapacity = 10;
+        
+        public float minDamage = 5;
+        public float maxDamage = 5;
+
+        public float minAttackSpeed = 1;
+        public float maxAttackSpeed = 1;
+
+        public float minRecoilAmount = 1;
+        public float maxRecoilAmount = 1;
+
+        public float minSpreadAmount = 1;
+        public float maxSpreadAmount = 1;
+
+        public int minBulletsPerShot = 1;
+        public int maxBulletsPerShot = 1;
+
+        public float minReloadSpeed = 1;
+        public float maxReloadSpeed = 1;
+        
+        public int minPiercingBulletsPerShot = 1;
+        public int maxPiercingBulletsPerShot = 1;
+
     }
     
     // A wrapper struct around the enum:

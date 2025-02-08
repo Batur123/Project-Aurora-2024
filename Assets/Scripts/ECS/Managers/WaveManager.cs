@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using ECS.Components;
+using Unity.Burst;
 using Unity.Entities;
 using Math = System.Math;
 
@@ -15,8 +16,13 @@ namespace ECS {
 
         protected override void OnUpdate() {
             WaveManager waveManager = SystemAPI.GetSingleton<WaveManager>();
-            var currentText = waveManager.isActive ? $"- Time Left: {Math.Round(waveManager.waveTimer)}" : "";
-            UIController.Instance.SetTextValue(UIController.TextType.COUNTDOWN_TEXT, $"Wave: {waveManager.currentWave} {currentText}");
+            int totalEnemyNumber = EntityManager.CreateEntityQuery(typeof(EnemyTag), typeof(IsSpawned)).CalculateEntityCount();
+
+            
+            var currentText = waveManager.isActive ? $"- Time Left: {Math.Round(waveManager.waveTimer)}" : $"";
+            
+
+            UIController.Instance.SetTextValue(UIController.TextType.COUNTDOWN_TEXT, $"Wave: {waveManager.currentWave} {currentText} - [Total Enemy]: {totalEnemyNumber}");
             //UIController.Instance.SetTextValue(UIController.TextType.ARMOR_TEXT, !waveManager.isActive ? "Press E to start wave" : "");
 
             if (!waveManager.isActive) {

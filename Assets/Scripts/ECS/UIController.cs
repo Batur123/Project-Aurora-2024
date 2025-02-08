@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ECS;
 using ECS.Bakers;
+using ECS.Components;
 using ScriptableObjects;
 using TMPro;
 using Unity.Collections;
@@ -104,7 +105,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.UpperRight,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.AMMO_TEXT,
@@ -119,7 +120,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.MiddleCenter,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.COUNTDOWN_TEXT,
@@ -134,7 +135,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.UpperLeft,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.SCOREBOARD_TEXT,
@@ -149,7 +150,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.MiddleCenter,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.INFO_TEXT,
@@ -179,7 +180,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.UpperLeft,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.ARMOR_TEXT,
@@ -194,7 +195,7 @@ public class UIController : MonoBehaviour {
             Font = Resources.Load<Font>("Fonts/SampleFont"),
             FontSize = 32,
             Alignment = TextAnchor.UpperLeft,
-            Color = Color.black,
+            Color = Color.green,
             HorizontalOverflow = HorizontalWrapMode.Overflow,
             VerticalOverflow = VerticalWrapMode.Truncate,
             TextType = TextType.ITEM_DROP_TEXT,
@@ -576,6 +577,7 @@ public class UIController : MonoBehaviour {
             }
 
             ecb.AddComponent<DisableSpriteRendererRequest>(weaponEntity);
+            //ecb.AddComponent<UpdateUserInterfaceTag>(playerSingleton.PlayerEntity);
             ecb.Playback(entityManager);
         }
 
@@ -800,8 +802,9 @@ public class UIController : MonoBehaviour {
             switch (itemData.itemType) {
                 case ItemType.WEAPON: {
                     WeaponData weaponData = entityManager.GetComponentData<WeaponData>(item);
+                    BaseWeaponData baseWeaponData = entityManager.GetComponentData<BaseWeaponData>(item);
                     weaponName.text = weaponData.weaponName.ToString();
-                    SetupWeaponTooltip(weaponData);
+                    SetupWeaponTooltip(weaponData, baseWeaponData);
                     break;
                 }
                 case ItemType.ATTACHMENT: {
@@ -836,7 +839,7 @@ public class UIController : MonoBehaviour {
         tooltipRect2.position = ClampToScreen(position, tooltipRect2);
     }
 
-    public void SetupWeaponTooltip(WeaponData weaponData) {
+    public void SetupWeaponTooltip(WeaponData weaponData, BaseWeaponData baseWeaponData) {
         ClearText(tierModifier);
         ClearText(damageModifier);
         ClearText(attackSpeedModifier);
@@ -872,7 +875,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.damage != 0) {
             SetModifier(
                 damageModifier,
-                $"Adds Damage: {weaponData.damage}",
+                $"Damage: {weaponData.damage:F1} [{baseWeaponData.minDamage} - {baseWeaponData.maxDamage}]",
                 weaponData.damage,
                 ref currentPosition,
                 stepY,
@@ -883,7 +886,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.attackSpeed != 0) {
             SetModifier(
                 attackSpeedModifier,
-                $"Adds Attack Speed: {weaponData.attackSpeed}",
+                $"Attack Speed: {weaponData.attackSpeed:F1} [{baseWeaponData.minAttackSpeed} - {baseWeaponData.maxAttackSpeed}]",
                 weaponData.attackSpeed,
                 ref currentPosition,
                 stepY,
@@ -894,7 +897,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.recoilAmount != 0) {
             SetModifier(
                 recoilModifier,
-                $"Recoil: {weaponData.recoilAmount}",
+                $"Recoil: {weaponData.recoilAmount:F1} [{baseWeaponData.minRecoilAmount} - {baseWeaponData.maxRecoilAmount}]",
                 weaponData.recoilAmount,
                 ref currentPosition,
                 stepY,
@@ -905,7 +908,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.spreadAmount != 0) {
             SetModifier(
                 spreadModifier,
-                $"Spread: {weaponData.spreadAmount}",
+                $"Spread: {weaponData.spreadAmount:F1} [{baseWeaponData.minSpreadAmount} - {baseWeaponData.maxSpreadAmount}]",
                 weaponData.spreadAmount,
                 ref currentPosition,
                 stepY,
@@ -916,7 +919,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.bulletsPerShot != 0) {
             SetModifier(
                 projectilePerShotModifier,
-                $"Projectile per Shot: {weaponData.bulletsPerShot}",
+                $"Projectile per Shot: {weaponData.bulletsPerShot:F1} [{baseWeaponData.minBulletsPerShot} - {baseWeaponData.maxBulletsPerShot}]",
                 weaponData.bulletsPerShot,
                 ref currentPosition,
                 stepY,
@@ -927,7 +930,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.reloadSpeed != 0) {
             SetModifier(
                 reloadSpeedModifier,
-                $"Reload Speed: {weaponData.reloadSpeed}",
+                $"Reload Speed: {weaponData.reloadSpeed:F1} [{baseWeaponData.minReloadSpeed} - {baseWeaponData.maxReloadSpeed}]",
                 weaponData.reloadSpeed,
                 ref currentPosition,
                 stepY,
@@ -938,7 +941,7 @@ public class UIController : MonoBehaviour {
         if (weaponData.ammoCapacity != 0) {
             SetModifier(
                 ammoCapacityModifier,
-                $"Ammo Capacity: {weaponData.ammoCapacity}",
+                $"Ammo Capacity: {weaponData.ammoCapacity:F1} [{baseWeaponData.minAmmoCapacity} - {baseWeaponData.maxAmmoCapacity}]",
                 weaponData.ammoCapacity,
                 ref currentPosition,
                 stepY,

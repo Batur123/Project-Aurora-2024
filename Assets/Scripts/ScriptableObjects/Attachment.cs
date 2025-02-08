@@ -1,26 +1,19 @@
 ﻿using System;
+using ECS.Components;
 using UnityEngine;
 
 namespace ScriptableObjects {
-    [CreateAssetMenu(fileName = "NewAttachment", menuName = "Gun/Attachment", order = 0)]
+    [CreateAssetMenu(fileName = "NewAttachmentTemplate", menuName = "Gun/AttachmentTemplate", order = 0)]
     public class AttachmentTemplate : ScriptableObject
     {
         public AttachmentType attachmentType;
         public string attachmentName;
+
         public float damageModifier;
         public float reloadSpeedModifier;
         public float accuracyModifier;
         public float recoilModifier;
         public int capacityModifier;
-    }
-    
-    public enum AttachmentType
-    {
-        Stock,
-        Barrel,
-        Magazine,
-        Scope,
-        Ammunition
     }
     
     public struct AttachmentTypeKey : IEquatable<AttachmentTypeKey>

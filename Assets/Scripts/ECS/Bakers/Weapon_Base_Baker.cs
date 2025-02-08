@@ -1,4 +1,5 @@
 ﻿using ECS.Authorings.BaseGuns;
+using ECS.Components;
 using Unity.Entities;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -11,14 +12,29 @@ namespace ECS.Bakers {
 
             var builder = new BlobBuilder(Allocator.Temp);
             ref var root = ref builder.ConstructRoot<GunTemplateBlob>();
-            root.attackSpeed = template.attackSpeed;
-            root.recoilAmount = template.recoilAmount;
-            root.damage = template.damage;
-            root.spreadAmount = template.spreadAmount;
-            root.reloadSpeed = template.reloadSpeed;
-            root.ammoCapacity = template.ammoCapacity;
-            root.bulletsPerShot = template.bulletsPerShot;
-            root.piercingBulletsPerShot = template.piercingBulletsPerShot;
+            root.minAttackSpeed = template.minAttackSpeed;
+            root.maxAttackSpeed = template.maxAttackSpeed;
+
+            root.minRecoilAmount = template.minRecoilAmount;
+            root.maxRecoilAmount = template.maxRecoilAmount;
+
+            root.minDamage = template.minDamage;
+            root.maxDamage = template.maxDamage;
+
+            root.minSpreadAmount = template.minSpreadAmount;
+            root.maxSpreadAmount = template.maxSpreadAmount;
+
+            root.minReloadSpeed = template.minReloadSpeed;
+            root.maxReloadSpeed = template.maxReloadSpeed;
+
+            root.minAmmoCapacity = template.minAmmoCapacity;
+            root.maxAmmoCapacity = template.maxAmmoCapacity;
+
+            root.minBulletsPerShot = template.minBulletsPerShot;
+            root.maxBulletsPerShot = template.maxBulletsPerShot;
+
+            root.minPiercingBulletsPerShot = template.minPiercingBulletsPerShot;
+            root.maxPiercingBulletsPerShot = template.maxPiercingBulletsPerShot;
 
             var blobRef = builder.CreateBlobAssetReference<GunTemplateBlob>(Allocator.Persistent);
             builder.Dispose();

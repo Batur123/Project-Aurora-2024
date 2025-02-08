@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using ECS.Components;
+using Unity.Entities;
 using Unity.Burst;
 using Unity.Transforms;
 

@@ -15,12 +15,19 @@ MonoBehaviour:
   gunType: 2
   gunName: Gaus-19
   projectileType: 1
-  ammoCapacity: 200
-  damage: 1
-  accuracy: 1
-  attackSpeed: 30
-  recoilAmount: 2
-  spreadAmount: 4
-  bulletsPerShot: 6
-  reloadSpeed: 3
-  piercingBulletsPerShot: 3
+  minAmmoCapacity: 50
+  maxAmmoCapacity: 300
+  minDamage: 2
+  maxDamage: 8
+  minAttackSpeed: 10
+  maxAttackSpeed: 30
+  minRecoilAmount: 1
+  maxRecoilAmount: 3
+  minSpreadAmount: 1
+  maxSpreadAmount: 3
+  minBulletsPerShot: 1
+  maxBulletsPerShot: 3
+  minReloadSpeed: 1
+  maxReloadSpeed: 3
+  minPiercingBulletsPerShot: 1
+  maxPiercingBulletsPerShot: 3

@@ -15,12 +15,19 @@ MonoBehaviour:
   gunType: 2
   gunName: M4A4-1
   projectileType: 1
-  ammoCapacity: 500
-  damage: 1
-  accuracy: 1
-  attackSpeed: 15
-  recoilAmount: 2
-  spreadAmount: 4
-  bulletsPerShot: 1
-  reloadSpeed: 1
-  piercingBulletsPerShot: 1
+  minAmmoCapacity: 15
+  maxAmmoCapacity: 30
+  minDamage: 5
+  maxDamage: 10
+  minAttackSpeed: 4
+  maxAttackSpeed: 12
+  minRecoilAmount: 1
+  maxRecoilAmount: 3
+  minSpreadAmount: 1
+  maxSpreadAmount: 3
+  minBulletsPerShot: 1
+  maxBulletsPerShot: 2
+  minReloadSpeed: 1
+  maxReloadSpeed: 2
+  minPiercingBulletsPerShot: 1
+  maxPiercingBulletsPerShot: 2

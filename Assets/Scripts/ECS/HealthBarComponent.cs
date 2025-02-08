@@ -1,4 +1,4 @@
-﻿namespace ECS {
+﻿/*namespace ECS {
     using UnityEngine;
 using UnityEngine.UI;
 
@@ -88,4 +88,4 @@ public class EnemyHealthBar : MonoBehaviour
     }
 }
 
-}
+}*/
