@@ -20,6 +20,9 @@ TagManager:
   - Enemy
   - AttachmentSlot
   - WeaponSlot
+  - FxTemporaire
+  - LevelUI
+  - LevelUpSlot
   layers:
   - Default
   - TransparentFX

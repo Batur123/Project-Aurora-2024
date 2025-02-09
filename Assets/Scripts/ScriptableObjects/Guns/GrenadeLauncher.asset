@@ -15,19 +15,20 @@ MonoBehaviour:
   gunType: 3
   gunName: Thumper Grenade Launcher
   projectileType: 2
-  minAmmoCapacity: 10
-  maxAmmoCapacity: 30
-  minDamage: 15
-  maxDamage: 45
-  minAttackSpeed: 1
-  maxAttackSpeed: 5
-  minRecoilAmount: 1
-  maxRecoilAmount: 5
-  minSpreadAmount: 1
-  maxSpreadAmount: 5
-  minBulletsPerShot: 1
-  maxBulletsPerShot: 5
-  minReloadSpeed: 1
-  maxReloadSpeed: 5
-  minPiercingBulletsPerShot: 1
-  maxPiercingBulletsPerShot: 5
+  statsRangeData:
+    minAmmoCapacity: 5
+    maxAmmoCapacity: 10
+    minDamage: 10
+    maxDamage: 20
+    minAttackSpeed: 0.5
+    maxAttackSpeed: 3
+    minRecoilAmount: 5
+    maxRecoilAmount: 10
+    minSpreadAmount: 1
+    maxSpreadAmount: 5
+    minBulletsPerShot: 1
+    maxBulletsPerShot: 5
+    minReloadSpeed: 1
+    maxReloadSpeed: 5
+    minPiercingBulletsPerShot: 0
+    maxPiercingBulletsPerShot: 0

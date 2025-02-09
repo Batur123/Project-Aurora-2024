@@ -31,11 +31,6 @@ namespace ECS
             return transformedPoint;
         }
     }
-    
-    public struct MousePosition : IComponentData
-    {
-        public Vector3 Value;
-    }
 
     [BurstCompile]
     public partial class MousePositionSystem : SystemBase

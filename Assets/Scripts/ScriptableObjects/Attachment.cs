@@ -3,17 +3,12 @@ using ECS.Components;
 using UnityEngine;
 
 namespace ScriptableObjects {
-    [CreateAssetMenu(fileName = "NewAttachmentTemplate", menuName = "Gun/AttachmentTemplate", order = 0)]
+    [CreateAssetMenu(fileName = "NewAttachmentTemplate", menuName = "Item/AttachmentTemplate", order = 0)]
     public class AttachmentTemplate : ScriptableObject
     {
-        public AttachmentType attachmentType;
         public string attachmentName;
-
-        public float damageModifier;
-        public float reloadSpeedModifier;
-        public float accuracyModifier;
-        public float recoilModifier;
-        public int capacityModifier;
+        public AttachmentType attachmentType;
+        public StatsRangeData statsRangeData;
     }
     
     public struct AttachmentTypeKey : IEquatable<AttachmentTypeKey>

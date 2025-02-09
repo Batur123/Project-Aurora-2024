@@ -13,6 +13,7 @@ namespace ECS {
     public partial struct CheckWeaponOnGroundTriggerSystem : ISystem {
         private ComponentLookup<PhysicsCollider> colliderLookup;
         private ComponentLookup<Item> itemLookup;
+        private ComponentLookup<PassiveItem> passiveItemLookup;
         private BufferLookup<Child> childLookup;
         private ComponentLookup<AttachmentTag> attachmentTagLookup;
         private BufferLookup<Inventory> inventoryLookup;
@@ -25,6 +26,7 @@ namespace ECS {
             childLookup = state.GetBufferLookup<Child>(isReadOnly: true);
             attachmentTagLookup = state.GetComponentLookup<AttachmentTag>(isReadOnly: true);
             inventoryLookup = state.GetBufferLookup<Inventory>(isReadOnly: true);
+            passiveItemLookup = state.GetComponentLookup<PassiveItem>(isReadOnly: true);
         }
 
         public void OnUpdate(ref SystemState state) {
@@ -36,10 +38,12 @@ namespace ECS {
             childLookup.Update(ref state);
             attachmentTagLookup.Update(ref state);
             inventoryLookup.Update(ref state);
+            passiveItemLookup.Update(ref state);
 
             state.Dependency = new CheckTriggerEvents {
                 colliderLookup = colliderLookup,
                 itemLookup = itemLookup,
+                passiveItemLookup = passiveItemLookup,
                 attachmentTagLookup = attachmentTagLookup,
                 childLookup = childLookup,
                 inventoryLookup = inventoryLookup,
@@ -67,20 +71,11 @@ namespace ECS {
             return CollisionBelongsToLayer.None;
         }
 
-        public static int SelectSlotIndexOfAttachment(AttachmentType attachmentType) {
-            switch (attachmentType) {
-                case AttachmentType.Barrel: return 1;
-                case AttachmentType.Ammunition: return 4;
-                case AttachmentType.Scope: return 3;
-                case AttachmentType.Magazine: return 2;
-                default: return -1;
-            }
-        }
-
         struct CheckTriggerEvents : ITriggerEventsJob {
             [ReadOnly] public ComponentLookup<PhysicsCollider> colliderLookup;
             [ReadOnly] public ComponentLookup<Item> itemLookup;
             [ReadOnly] public ComponentLookup<AttachmentTag> attachmentTagLookup;
+            [ReadOnly] public ComponentLookup<PassiveItem> passiveItemLookup;
 
             [ReadOnly] public BufferLookup<Child> childLookup;
             [ReadOnly] public BufferLookup<Inventory> inventoryLookup;
@@ -128,6 +123,9 @@ namespace ECS {
                 if (entityManager.HasComponent<GunTag>(itemEntity) && equippedGunBuffer.IsEmpty) {
                     PickupWeapon(itemEntity, otherEntity);
                 }
+                else if (passiveItemLookup.HasComponent(itemEntity)) {
+                    Debug.Log("Should pick up passive item to the passive item slots, not to the inventory");
+                }
                 else if (itemLookup.HasComponent(itemEntity)) {
                     PickupToInventory(itemEntity, otherEntity);
                 }
@@ -150,7 +148,7 @@ namespace ECS {
                 item.onGround = false;
                 item.isEquipped = false;
                 ecb.SetComponent(0, itemEntity, item);
-                entityManager.SetComponentData(otherEntity, new UIUpdateFlag { needsUpdate = true });
+                ecb.AddComponent<UpdateUserInterfaceTag>(0, otherEntity);
                 ecb.AddComponent<DisableSpriteRendererRequest>(0, itemEntity);
             }
 
@@ -196,7 +194,7 @@ namespace ECS {
                     }
                 }
 
-                entityManager.SetComponentData(otherEntity, new UIUpdateFlag { needsUpdate = true });
+                ecb.AddComponent<UpdateUserInterfaceTag>(0, otherEntity);
             }
 
             (Entity, Entity) GetEntityWithComponent<T>(Entity entityA, Entity entityB) where T : struct, IComponentData {

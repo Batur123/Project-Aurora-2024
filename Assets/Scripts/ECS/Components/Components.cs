@@ -1,185 +1,228 @@
-﻿using ScriptableObjects;
+﻿using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace ECS.Components {
+    /** Tags **/
+    public struct AttachmentDropProcessTag : IComponentData {}
+    public struct EnemyAnimation : IComponentData{}
+    public struct PlayerAnimation : IComponentData{}
     public struct DroppedItemTag : IComponentData {}
     public struct GunTag : IComponentData {}
+    public struct UpdateUserInterfaceTag : IComponentData {}
+    public struct DisableSpriteRendererRequest : IComponentData {}
+    public struct EnableSpriteRendererRequest : IComponentData {}
+    public struct PickupRequest : IComponentData {}
+    public struct InventoryOpen : IComponentData {}
+    public struct AttachmentTag : IComponentData {}
+    public struct StartFuseCountdown : IComponentData {}
+    public struct PlayerTag : IComponentData {}
+    public struct EnemyTag : IComponentData, IEnableableComponent {}
+    public struct DisabledEnemyTag : IComponentData {}
+    public struct DisabledProjectileTag : IComponentData {}
+    public struct BossTag : IComponentData {}
+    public struct NPCTag : IComponentData {}
+    public struct ItemTag : IComponentData {}
+    public struct ProjectileTag : IComponentData {}
+    public struct IsSpawned : IComponentData {}
+    public struct ItemSpawner : IComponentData {}
+    public struct ProjectileSpawner : IComponentData {}
+    public struct ReloadingTag : IComponentData {}
+    public struct PassiveItemTag : IComponentData {}
+    /** Tags **/
 
+
+    /** Special Attributes **/
+    public enum SpecialAttributes : byte {
+        None,
+        Overclock_Module,
+        Cluster_Grenade_Module,
+        Lifesteal_Module,
+    }
+    
+    // Fire rate increases by 10% for each consecutive shot, resets on reload.
+    public struct OverclockModuleAttribute : IComponentData {}
+
+    /** Special Attributes **/
+
+    /** [Passive Items] **/
+    public struct PassiveItem : IComponentData {
+        public FixedString64Bytes itemName;
+        public int amount;
+    }
+
+    public enum PassiveItemType {
+        NONE,
+        BANDAGE,
+        MEDKIT,
+        NANO_BOT_RELOADER,
+        DOUBLE_MAGAZINE,
+        KEVLAR_VEST,
+    }
+    
+    public struct PassiveItemTypeComponent : IComponentData {
+        public PassiveItemType passiveItemType;
+        public FixedString64Bytes itemName;
+        public float lootWeight;
+    }
+
+    public struct PassiveItemTemplateBlob {
+        public StatsData statsData;
+        public CharacterStatsData characterData;
+    }
+    
+    public struct PassiveItemBlobReference : IComponentData {
+        public BlobAssetReference<PassiveItemTemplateBlob> templateBlob;
+    }
+    /** [Passive Items] **/
+    
     public struct AmmoComponent : IComponentData {
         public int currentAmmo;
         public int capacity;
         public bool isReloading;
     }
 
-    public enum AttachmentType
-    {
+    public enum AttachmentType {
         Stock,
         Barrel,
         Magazine,
         Scope,
         Ammunition
     }
-    
+
     public enum Rarity {
-        Common, 
-        Uncommon, 
-        Rare, 
-        Epic, 
+        Common,
+        Uncommon,
+        Rare,
+        Epic,
         Legendary,
         Mythic
     }
-    
-    public enum GunType
-    {
+
+    public enum GunType {
         Pistol,
         Shotgun,
         Rifle,
         GrenadeLauncher,
     }
+
+    [Serializable]
+    public struct StatsData
+    {
+        public int ammoCapacity;
+        public float damage;
+        public float attackSpeed;
+        public float recoilAmount;
+        public float spreadAmount;
+        public int bulletsPerShot;
+        public float reloadSpeed;
+        public int piercingBulletsPerShot;
+    }
     
-    // Base Stats
-    public struct BaseWeaponData : IComponentData {
+    [Serializable]
+    public struct StatsRangeData
+    {
         public int minAmmoCapacity;
         public int maxAmmoCapacity;
-        public int ammoCapacity;
         
-        public float damage;
         public float minDamage;
         public float maxDamage;
         
-        public float attackSpeed;
         public float minAttackSpeed;
         public float maxAttackSpeed;
         
-        public float recoilAmount;
         public float minRecoilAmount;
         public float maxRecoilAmount;
         
-        public float spreadAmount;
         public float minSpreadAmount;
         public float maxSpreadAmount;
         
-        public int bulletsPerShot;
         public int minBulletsPerShot;
         public int maxBulletsPerShot;
         
-        public float reloadSpeed;
         public float minReloadSpeed;
         public float maxReloadSpeed;
         
-        public int piercingBulletsPerShot;
         public int minPiercingBulletsPerShot;
         public int maxPiercingBulletsPerShot;
+    }
+    
+    // Base Stats
+    public struct BaseWeaponData : IComponentData {
+        public StatsRangeData range;
+        public StatsData stats;
     }
     
     // Calculated Stats after base + upgrades
     public struct WeaponData : IComponentData {
         public FixedString64Bytes weaponName;
-        public int ammoCapacity;
-        public float damage;
-        public float attackSpeed;
-        public float recoilAmount;
-        public float spreadAmount;
-        public int bulletsPerShot;
-        public float reloadSpeed;
-        public int piercingBulletsPerShot;
+        public StatsData stats;
     }
 
+    // Base Attachment Stats
+    public struct BaseAttachmentData : IComponentData {
+        public StatsRangeData range;
+        public StatsData stats;
+    }
+    
     // Attachment Stats that calculates
-    public struct AttachmentComponent : IComponentData {
+    public struct AttachmentData : IComponentData {
         public FixedString64Bytes attachmentName;
-        public int ammoCapacity;
-        public float damage;
-        public float attackSpeed;
-        public float recoilAmount;
-        public float spreadAmount;
-        public int bulletsPerShot;
-        public float reloadSpeed;
-        public int piercingBulletsPerShot;
+        public StatsData stats;
     }
-    
+
     // Blob data from initial scriptable object to put into BaseStats
-    public struct GunTemplateBlob
-    {
-        public int minAmmoCapacity;
-        public int maxAmmoCapacity;
-        public float minDamage;
-        public float maxDamage;
-        public float minAttackSpeed;
-        public float maxAttackSpeed;
-        public float minRecoilAmount;
-        public float maxRecoilAmount;
-        public float minSpreadAmount;
-        public float maxSpreadAmount;
-        public int minBulletsPerShot;
-        public int maxBulletsPerShot;
-        public float minReloadSpeed;
-        public float maxReloadSpeed;
-        public int minPiercingBulletsPerShot;
-        public int maxPiercingBulletsPerShot;
+    public struct GunTemplateBlob {
+        public StatsRangeData statsRangeData;
     }
-    
-    public struct AttachmentTemplateBlob
-    {
-        public float damageModifier;
-        public float reloadSpeedModifier;
-        public float accuracyModifier;
-        public float recoilModifier;
-        public int capacityModifier;
+
+    public struct AttachmentTemplateBlob {
+        public StatsRangeData statsRangeData;
     }
-    
-    public struct MuzzlePointTransform : IComponentData
-    {
-        public float3 position;   // Position of the muzzle point
+
+    public struct MuzzlePointTransform : IComponentData {
+        public float3 position; // Position of the muzzle point
         public quaternion rotation; // Rotation of the muzzle point
-        public float3 scale;      // Scale of the muzzle point
+        public float3 scale; // Scale of the muzzle point
         public float3 offset;
         public float3 boundOffset;
     }
 
-    public struct ScopePointTransform : IComponentData
-    {
-        public float3 position;   // Position of the scope point
+    public struct ScopePointTransform : IComponentData {
+        public float3 position; // Position of the scope point
         public quaternion rotation; // Rotation of the scope point
-        public float3 scale;      // Scale of the scope point
+        public float3 scale; // Scale of the scope point
         public float3 offset;
         public float3 boundOffset;
     }
 
-    public struct GunBlobReference : IComponentData
-    {
+    public struct GunBlobReference : IComponentData {
         public BlobAssetReference<GunTemplateBlob> templateBlob;
     }
 
-    public struct AttachmentBlobReference : IComponentData
-    {
+    public struct AttachmentBlobReference : IComponentData {
         public BlobAssetReference<AttachmentTemplateBlob> templateBlob;
     }
-
-    public struct AttachmentTag : IComponentData {}
-
+    
     public struct AttachmentTypeComponent : IComponentData {
         public AttachmentType attachmentType;
         public int variantId;
         public float lootWeight;
     }
 
-    public struct GunTypeComponent : IComponentData
-    {
+    public struct GunTypeComponent : IComponentData {
         public GunType gunType;
         public int variantId;
         public float lootWeight;
     }
-    
+
     public struct WeaponProjectileTypeComponent : IComponentData {
         public ProjectileType projectileType;
     }
-    
-    public struct GrenadeComponent : IComponentData
-    {
+
+    public struct GrenadeComponent : IComponentData {
         public float3 StartPosition; // Where the grenade starts
         public float3 TargetPosition; // Where the grenade should land
         public float PeakHeight;
@@ -195,25 +238,14 @@ namespace ECS.Components {
         public float elapsedExplosionTime;
     }
 
-    public struct StartFuseCountdown : IComponentData {}
-
     public struct MuzzlePoint : IComponentData {
-        public float3 position;  // Position of the muzzle point relative to the weapon
+        public float3 position; // Position of the muzzle point relative to the weapon
     }
-    
+
     public struct BuiltPrefab : IComponentData {
         public Entity prefab;
     }
-    
-    public struct GunAttachment : IBufferElementData
-    {
-        public Entity AttachmentEntity;
-    }
 
-    public struct AttachmentPrefab : IComponentData {
-        public Entity prefab;
-    }
-    
     public enum EnemyType {
         BASIC_ZOMBIE,
         RUNNER_ZOMBIE,
@@ -237,33 +269,7 @@ namespace ECS.Components {
         public float waveTimer;
         public int totalEnemy;
     }
-    
-    public struct PlayerTag : IComponentData {
-    }
 
-    public struct EnemyTag : IComponentData, IEnableableComponent  {
-    }
-    public struct DisabledEnemyTag : IComponentData {}
-    public struct DisabledProjectileTag : IComponentData {}
-
-    public struct BossTag : IComponentData {
-    }
-
-    public struct NPCTag : IComponentData {
-    }
-
-    public struct ItemTag : IComponentData {
-        
-    }
-    public struct ProjectileTag : IComponentData {
-    }
-
-    public struct IsSpawned : IComponentData {
-    }
-
-    public struct ItemSpawner : IComponentData {
-        
-    }
     public struct SpawnerTime : IComponentData {
         public float nextSpawnTime;
     }
@@ -296,52 +302,47 @@ namespace ECS.Components {
     }
 
     public struct AttackTimer : IComponentData {
-        public float TimeElapsed;  // Tracks time since last attack
-    }
-
-    public struct CharacterStats : IComponentData {
-        public float health;
-        public float maxHealth; // starts 10
-        public float stamina; 
-        public float maxStamina; // starts 100
-        public float armor; // starts 0
-        public float maxArmor; // starts 0
-        public float criticalHitChance; // every 1 point chance %5 ?
-        public float criticalDamage; // every 1 point damage %25
-        public float luck; // every 1 point luck %6.66
-        public float sanity; // every 1 point sanity %3.14
-        public float lifeSteal; // every 1 point life steal %1
-        public float dodge; // every 1 point dodge %2
-        public float healthRegeneration; // 1 point hp regen 0.5/s
-        public float armorRegeneration; // 1 point armor regen 0.2/s
+        public float TimeElapsed; // Tracks time since last attack
     }
     
+    [Serializable]
+    public struct CharacterStatsData
+    {
+        public float health;
+        public float maxHealth;
+        public float stamina;
+        public float maxStamina;
+        public float armor;
+        public float maxArmor;
+        public float criticalHitChance;
+        public float criticalDamage;
+        public float luck;
+        public float sanity;
+        public float lifeSteal;
+        public float dodge;
+        public float healthRegeneration;
+        public float armorRegeneration;
+    }
+
+
+    public struct CharacterStats : IComponentData {
+        public CharacterStatsData characterStats;
+    }
+
     // Player-specific data
     public struct PlayerData : IComponentData {
         public int experience;
         public int level;
         public int killCount;
+        public int pendingLevelUps;
     }
 
-    public struct EquippedGun : IBufferElementData
-    {
+    public struct EquippedGun : IBufferElementData {
         public Entity GunEntity;
-    }
-
-    public struct PlayerInputComponent : IComponentData {
-        public float speed;
-        public float2 direction;
     }
 
     public struct ProjectileShootingData : IComponentData {
         public float nextShootingTime;
-    }
-
-    public struct Projectile : IComponentData {
-        public Entity projectilePrefab;
-    }
-
-    public struct ProjectileSpawner : IComponentData {
     }
 
     public struct ProjectileComponent : IComponentData {
@@ -359,7 +360,7 @@ namespace ECS.Components {
         POISON_BULLET,
         ELECTRIC_BULLET,
     }
-    
+
     public struct ProjectileDataComponent : IComponentData {
         public int piercingEnemyNumber;
     }
@@ -368,36 +369,22 @@ namespace ECS.Components {
         public Entity PlayerEntity;
     }
 
-    public struct ReloadingTag : IComponentData { }
+    public struct Projectile : IComponentData {
+        public Entity projectilePrefab;
+    }
 
     public struct ReloadTimer : IComponentData {
         public float timeRemaining;
     }
-    
-    public struct AnimationParameters : IComponentData
-    {
-        public float Speed;
-        public int Side;
-        public bool HoldItem;
-    }
-
-    /*
-     * TODO Add Only UI Update Tag reduce overhead and size of components for archetypes
-     *  public struct UpdateUserInterfaceTag : IComponentData {}
-     */
-    public struct UIUpdateFlag : IComponentData {
-        public bool needsUpdate;
-    }
-    
-    public struct InventoryOpen : IComponentData {}
 
     public enum ItemType {
         NONE,
         MATERIAL,
         WEAPON,
-        ATTACHMENT
+        ATTACHMENT,
+        PASSIVE_ITEM
     }
-    
+
     public struct Item : IComponentData {
         public int slot;
         public ItemType itemType;
@@ -406,12 +393,87 @@ namespace ECS.Components {
         public bool isStackable;
         public bool onGround;
     }
-    
+
     public struct Inventory : IBufferElementData {
         public Entity itemEntity;
     }
     
-    public struct DisableSpriteRendererRequest : IComponentData { }
-    public struct EnableSpriteRendererRequest : IComponentData { }
-    public struct PickupRequest : IComponentData { }
+    public enum ParticleType {
+        None,
+        Rain,
+        Bullet_Hit,
+    }
+
+    public struct RainFollowerParticle : IComponentData {
+    }
+
+    public struct ParticleTypeComponent : IComponentData {
+        public ParticleType particleType;
+    }
+
+    public struct ParticleSpawnerRequestTag : IComponentData {
+        public ParticleType particleType;
+        public Vector3 spawnPosition;
+        public float particleLifeTime;
+    }
+
+    public struct BulletHitParticleData : IComponentData {
+        public float lifeTime;
+    }
+
+    public struct ScaleChildParticlesTag : IComponentData {
+        public float scale;
+    }
+    
+    public enum AnimationType : byte
+    {
+        Idle,
+        Walk
+    }
+
+    public struct AnimatorState : IComponentData
+    {
+        public AnimationType CurrentAnimation;
+        public int CurrentFrame;
+        public float Timer;
+    }
+
+    public class SpriteAnimationClips : IComponentData
+    {
+        public Sprite[] IdleSprites;
+        public float IdleFrameDuration;
+
+        public Sprite[] WalkSprites;
+        public float WalkFrameDuration;
+    }
+    
+    public struct MousePosition : IComponentData
+    {
+        public Vector3 Value;
+    }
+    
+    public struct RemoveAttachmentRequest : IComponentData {
+        public Entity gunEntity;
+        public Entity attachmentEntity;
+    }
+
+    public struct SpawnGunRequest : IComponentData {
+        public GunType gunType;
+        public int variantId;
+        public float3 position;
+        public float scale;
+    }
+
+    public struct SpawnPassiveItemRequest : IComponentData {
+        public PassiveItemType passiveItemType;
+        public int variantId;
+        public float3 position;
+        public float scale;
+    }
+    
+    public struct SpawnAttachmentRequest : IComponentData {
+        public AttachmentType attachmentType;
+        public int variantId;
+        public float3 position;
+    }
 }

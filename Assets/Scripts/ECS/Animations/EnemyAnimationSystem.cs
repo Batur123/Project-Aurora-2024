@@ -1,10 +1,6 @@
-﻿using ECS;
-using ECS.Animations;
+﻿using ECS.Components;
 using Unity.Entities;
-using UnityEngine;
 using Unity.Burst;
-using Unity.Mathematics;
-using Unity.Transforms;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]

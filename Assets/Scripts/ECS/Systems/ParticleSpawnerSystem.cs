@@ -7,33 +7,6 @@ using Unity.Transforms;
 using UnityEngine;
 
 namespace ECS.Systems {
-    public enum ParticleType {
-        None,
-        Rain,
-        Bullet_Hit,
-    }
-
-    public struct RainFollowerParticle : IComponentData {
-    }
-
-    public struct ParticleTypeComponent : IComponentData {
-        public ParticleType particleType;
-    }
-
-    public struct ParticleSpawnerRequestTag : IComponentData {
-        public ParticleType particleType;
-        public Vector3 spawnPosition;
-        public float particleLifeTime;
-    }
-
-    public struct BulletHitParticleData : IComponentData {
-        public float lifeTime;
-    }
-
-    public struct ScaleChildParticlesTag : IComponentData {
-        public float scale;
-    }
-
     public partial struct ParticleSpawnerSystem : ISystem {
         public void OnCreate(ref SystemState state) {
             state.RequireForUpdate<PlayerSingleton>();
@@ -147,7 +120,7 @@ namespace ECS.Systems {
         }
 
         public void OnUpdate(ref SystemState state) {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
             foreach (var (requestTag, rootEntity) in SystemAPI.Query<RefRO<ScaleChildParticlesTag>>().WithEntityAccess()) {
                 if (state.EntityManager.HasComponent<LinkedEntityGroup>(rootEntity)) {
                     DynamicBuffer<LinkedEntityGroup> linkedGroup = state.EntityManager.GetBuffer<LinkedEntityGroup>(rootEntity);
@@ -177,7 +150,7 @@ namespace ECS.Systems {
         }
 
         public void OnUpdate(ref SystemState state) {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
             
             foreach (var (particleData, entity)
                      in SystemAPI.Query<RefRW<BulletHitParticleData>>()

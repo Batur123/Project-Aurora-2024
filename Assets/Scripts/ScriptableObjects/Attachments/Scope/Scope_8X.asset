@@ -12,11 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4b992950a2c434b9d54f8161182e451, type: 3}
   m_Name: Scope_8X
   m_EditorClassIdentifier: 
-  attachmentType: 3
-  attachmentSprite: {fileID: -9190675311735184628, guid: 76ebe0b8e211e9543b36f934674146c6, type: 3}
   attachmentName: Base Scope
-  damageModifier: 0
-  reloadSpeedModifier: 0
-  accuracyModifier: 0
-  recoilModifier: 0
-  capacityModifier: 0
+  attachmentType: 3
+  statsRangeData:
+    minAmmoCapacity: 0
+    maxAmmoCapacity: 0
+    minDamage: 1
+    maxDamage: 5
+    minAttackSpeed: 1
+    maxAttackSpeed: 5
+    minRecoilAmount: 0
+    maxRecoilAmount: 0
+    minSpreadAmount: 0
+    maxSpreadAmount: 0
+    minBulletsPerShot: 0
+    maxBulletsPerShot: 0
+    minReloadSpeed: 1
+    maxReloadSpeed: 2
+    minPiercingBulletsPerShot: 0
+    maxPiercingBulletsPerShot: 0

@@ -40,25 +40,26 @@ namespace ECS.Systems {
                     ecb.AddComponent(playerEntity, new ProjectileShootingData { nextShootingTime = 2f });
                     ecb.AddComponent(playerEntity, new PlayerData { experience = 0, level = 1, killCount = 0 });
                     ecb.AddComponent(playerEntity, new CharacterStats {
-                        health = 10f,
-                        maxHealth = 10f,
-                        stamina = 100f,
-                        maxStamina = 100f,
-                        armor = 6f,
-                        criticalHitChance = 0f,
-                        criticalDamage = 1.0f,
-                        luck = 1f,
-                        sanity = 10f,
-                        lifeSteal = 1f,
-                        dodge = 4f,
-                        healthRegeneration = 2f,
-                        armorRegeneration = 3f,
+                        characterStats = {
+                            health = 10f,
+                            maxHealth = 10f,
+                            stamina = 100f,
+                            maxStamina = 100f,
+                            armor = 6f,
+                            criticalHitChance = 0f,
+                            criticalDamage = 1.0f,
+                            luck = 1f,
+                            sanity = 10f,
+                            lifeSteal = 1f,
+                            dodge = 4f,
+                            healthRegeneration = 2f,
+                            armorRegeneration = 3f,
+                        }
                     });
 
-                    ecb.AddComponent(playerEntity, new AnimationParameters());
                     ecb.AddBuffer<EquippedGun>(playerEntity);
 
-                    ecb.AddComponent<UIUpdateFlag>(playerEntity);
+                    ecb.AddComponent<UpdateUserInterfaceTag>(playerEntity);
 
                     ecb.AddComponent<ReloadTimer>(playerEntity);
                     
@@ -105,6 +106,14 @@ namespace ECS.Systems {
                         attachmentType = AttachmentType.Scope,
                         position = new float3(-3,-1,0),
                         variantId = 0,
+                    });
+
+                    var bandageTest = ecb.CreateEntity();
+                    ecb.AddComponent(bandageTest, new SpawnPassiveItemRequest {
+                        passiveItemType = PassiveItemType.BANDAGE,
+                        position = new float3(-2,-2,0),
+                        variantId = 0,
+                        scale = 1f,
                     });
                     
                     

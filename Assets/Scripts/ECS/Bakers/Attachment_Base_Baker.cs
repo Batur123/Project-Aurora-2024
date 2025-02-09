@@ -13,11 +13,31 @@ namespace ECS.Bakers.AttachmentBakers {
 
             var builder = new BlobBuilder(Allocator.Temp);
             ref var root = ref builder.ConstructRoot<AttachmentTemplateBlob>();
-            root.accuracyModifier = template.accuracyModifier;
-            root.damageModifier = template.damageModifier;
-            root.capacityModifier = template.capacityModifier;
-            root.recoilModifier = template.recoilModifier;
-            root.reloadSpeedModifier = template.reloadSpeedModifier;
+
+            var stats = template.statsRangeData;
+            root.statsRangeData.minAttackSpeed = stats.minAttackSpeed;
+            root.statsRangeData.maxAttackSpeed = stats.maxAttackSpeed;
+            
+            root.statsRangeData.minRecoilAmount = stats.minRecoilAmount;
+            root.statsRangeData.maxRecoilAmount = stats.maxRecoilAmount;
+            
+            root.statsRangeData.minDamage = stats.minDamage;
+            root.statsRangeData.maxDamage = stats.maxDamage;
+            
+            root.statsRangeData.minSpreadAmount = stats.minSpreadAmount;
+            root.statsRangeData.maxSpreadAmount = stats.maxSpreadAmount;
+            
+            root.statsRangeData.minReloadSpeed = stats.minReloadSpeed;
+            root.statsRangeData.maxReloadSpeed = stats.maxReloadSpeed;
+            
+            root.statsRangeData.minAmmoCapacity = stats.minAmmoCapacity;
+            root.statsRangeData.maxAmmoCapacity = stats.maxAmmoCapacity;
+            
+            root.statsRangeData.minBulletsPerShot = stats.minBulletsPerShot;
+            root.statsRangeData.maxBulletsPerShot = stats.maxBulletsPerShot;
+            
+            root.statsRangeData.minPiercingBulletsPerShot = stats.minPiercingBulletsPerShot;
+            root.statsRangeData.maxPiercingBulletsPerShot = stats.maxPiercingBulletsPerShot;
 
             var blobRef = builder.CreateBlobAssetReference<AttachmentTemplateBlob>(Allocator.Persistent);
             builder.Dispose();

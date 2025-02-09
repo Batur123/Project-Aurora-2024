@@ -745,6 +745,55 @@ MonoBehaviour:
   lootWeight: 45
   prefab: {fileID: 5906765640409321740, guid: 98313c29fa8523c49a1706e8003b0e9f, type: 3}
   gunTemplate: {fileID: 11400000, guid: 1b2e629bd166f2a47bfaae2eaee41b0a, type: 2}
+--- !u!1 &1015640725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1015640727}
+  - component: {fileID: 1015640726}
+  m_Layer: 0
+  m_Name: Pristine Bandage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1015640726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1015640725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c08df8a71f4f5682c2455f0db01773, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  passiveItemType: 1
+  variantId: 0
+  lootWeight: 100
+  prefab: {fileID: 5906765640409321740, guid: abc6c4ee1b082a14d80a402806f6f718, type: 3}
+  passiveItemTemplate: {fileID: 11400000, guid: c5899b0bba56b5240b737a08dbcc1d02, type: 2}
+--- !u!4 &1015640727
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1015640725}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1658691742}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1032190277
 GameObject:
   m_ObjectHideFlags: 0
@@ -1522,6 +1571,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1658691741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1658691742}
+  m_Layer: 0
+  m_Name: PassiveItem_Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1658691742
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658691741}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1015640727}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1731650541
 GameObject:
   m_ObjectHideFlags: 0
@@ -2165,6 +2246,7 @@ SceneRoots:
   - {fileID: 1822519756}
   - {fileID: 1533002719}
   - {fileID: 1320579644}
+  - {fileID: 1658691742}
   - {fileID: 829848142}
   - {fileID: 1731650543}
   - {fileID: 64446840}

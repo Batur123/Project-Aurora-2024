@@ -13,6 +13,7 @@ public enum SlotType
     Weapon,
     Material,
     Attachment,
+    Level_Up_Item,
 }
 
 public class InventorySlot : MonoBehaviour
@@ -35,7 +36,6 @@ public class InventorySlot : MonoBehaviour
         SlotIndex = index;
         SlotType = slotType;
         CurrentItemType = currentItemType;
-
     }
 
     public void AssignItem(InventoryItem item, ItemType currentItemType)

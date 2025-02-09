@@ -1,5 +1,5 @@
 ﻿using ECS.Components;
-using ScriptableObjects;
+using ECS.Libraries;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,7 +8,6 @@ using Unity.Transforms;
 using UnityEngine;
 
 namespace ECS {
-    public struct AttachmentDropProcessTag : IComponentData {}
     
     [BurstCompile]
     public partial struct DropEquippedWeaponAttachment : ISystem {
@@ -134,7 +133,7 @@ namespace ECS {
    
             
             public void Execute() {
-                ecb.SetComponent(0, PlayerEntity, new UIUpdateFlag { needsUpdate = true });
+                ecb.AddComponent<UpdateUserInterfaceTag>(0, PlayerEntity);
 
                 ecb.RemoveComponent<ReloadingTag>(0, PlayerEntity);
                 ecb.SetComponent(0, PlayerEntity, new ReloadTimer { timeRemaining = 2f });

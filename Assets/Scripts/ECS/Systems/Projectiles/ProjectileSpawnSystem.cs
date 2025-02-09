@@ -71,10 +71,10 @@ namespace ECS.Systems.Projectiles {
                 Speed = 7f,
                 Lifetime = 4f,
                 Velocity = new float3(shootDirection.x, shootDirection.y, 0f) * 1f,
-                BaseDamage = weaponData.damage,
+                BaseDamage = weaponData.stats.damage,
             });
             ecb.AddComponent(chunkIndex, projectileEntity, new ProjectileDataComponent {
-                piercingEnemyNumber = weaponData.piercingBulletsPerShot,
+                piercingEnemyNumber = weaponData.stats.piercingBulletsPerShot,
             });
 
             // Add this to use projectile in correct system.

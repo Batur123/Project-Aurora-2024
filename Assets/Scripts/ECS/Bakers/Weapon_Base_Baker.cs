@@ -12,29 +12,32 @@ namespace ECS.Bakers {
 
             var builder = new BlobBuilder(Allocator.Temp);
             ref var root = ref builder.ConstructRoot<GunTemplateBlob>();
-            root.minAttackSpeed = template.minAttackSpeed;
-            root.maxAttackSpeed = template.maxAttackSpeed;
 
-            root.minRecoilAmount = template.minRecoilAmount;
-            root.maxRecoilAmount = template.maxRecoilAmount;
-
-            root.minDamage = template.minDamage;
-            root.maxDamage = template.maxDamage;
-
-            root.minSpreadAmount = template.minSpreadAmount;
-            root.maxSpreadAmount = template.maxSpreadAmount;
-
-            root.minReloadSpeed = template.minReloadSpeed;
-            root.maxReloadSpeed = template.maxReloadSpeed;
-
-            root.minAmmoCapacity = template.minAmmoCapacity;
-            root.maxAmmoCapacity = template.maxAmmoCapacity;
-
-            root.minBulletsPerShot = template.minBulletsPerShot;
-            root.maxBulletsPerShot = template.maxBulletsPerShot;
-
-            root.minPiercingBulletsPerShot = template.minPiercingBulletsPerShot;
-            root.maxPiercingBulletsPerShot = template.maxPiercingBulletsPerShot;
+            var stats = template.statsRangeData;
+            
+            root.statsRangeData.minAttackSpeed = stats.minAttackSpeed;
+            root.statsRangeData.maxAttackSpeed = stats.maxAttackSpeed;
+            
+            root.statsRangeData.minRecoilAmount = stats.minRecoilAmount;
+            root.statsRangeData.maxRecoilAmount = stats.maxRecoilAmount;
+            
+            root.statsRangeData.minDamage = stats.minDamage;
+            root.statsRangeData.maxDamage = stats.maxDamage;
+            
+            root.statsRangeData.minSpreadAmount = stats.minSpreadAmount;
+            root.statsRangeData.maxSpreadAmount = stats.maxSpreadAmount;
+            
+            root.statsRangeData.minReloadSpeed = stats.minReloadSpeed;
+            root.statsRangeData.maxReloadSpeed = stats.maxReloadSpeed;
+            
+            root.statsRangeData.minAmmoCapacity = stats.minAmmoCapacity;
+            root.statsRangeData.maxAmmoCapacity = stats.maxAmmoCapacity;
+            
+            root.statsRangeData.minBulletsPerShot = stats.minBulletsPerShot;
+            root.statsRangeData.maxBulletsPerShot = stats.maxBulletsPerShot;
+            
+            root.statsRangeData.minPiercingBulletsPerShot = stats.minPiercingBulletsPerShot;
+            root.statsRangeData.maxPiercingBulletsPerShot = stats.maxPiercingBulletsPerShot;
 
             var blobRef = builder.CreateBlobAssetReference<GunTemplateBlob>(Allocator.Persistent);
             builder.Dispose();

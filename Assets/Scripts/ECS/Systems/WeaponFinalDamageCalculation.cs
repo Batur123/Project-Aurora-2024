@@ -1,42 +1,60 @@
 ﻿using ECS.Components;
 using Unity.Entities;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace ECS.Systems {
     [BurstCompile]
     public partial struct WeaponStatCalculationSystem : ISystem {
+        public void OnCreate(ref SystemState state) {
+            state.RequireForUpdate<PlayerSingleton>();
+        }
+        
         public void OnUpdate(ref SystemState state) {
-            foreach (var (weaponData, baseWeaponData, weaponEntity) in SystemAPI.Query<RefRW<WeaponData>, RefRW<BaseWeaponData>>().WithEntityAccess()) {
+            foreach (var (weaponData,baseWeaponData,weaponEntity)
+                     in SystemAPI.Query<RefRW<WeaponData>, RefRO<BaseWeaponData>>().WithEntityAccess()) {
                 DynamicBuffer<Child> attachments = state.EntityManager.GetBuffer<Child>(weaponEntity);
-                
-                float damage = baseWeaponData.ValueRO.damage;
-                float attackSpeed = baseWeaponData.ValueRO.attackSpeed;
-                float recoilAmount = baseWeaponData.ValueRO.recoilAmount;
-                float spreadAmount = baseWeaponData.ValueRO.spreadAmount;
-                int bulletsPerShot = baseWeaponData.ValueRO.bulletsPerShot;
 
-                // Iterate over all attachments and accumulate modifiers
+                float damage = baseWeaponData.ValueRO.stats.damage;
+                float attackSpeed = baseWeaponData.ValueRO.stats.attackSpeed;
+                float recoilAmount = baseWeaponData.ValueRO.stats.recoilAmount;
+                float spreadAmount = baseWeaponData.ValueRO.stats.spreadAmount;
+                int bulletsPerShot = baseWeaponData.ValueRO.stats.bulletsPerShot;
+
+                int piercingBulletsPerShot = baseWeaponData.ValueRO.stats.piercingBulletsPerShot;
+                float reloadSpeed = baseWeaponData.ValueRO.stats.reloadSpeed;
+                int ammoCapacity = baseWeaponData.ValueRO.stats.ammoCapacity;
+
                 foreach (var child in attachments) {
                     Entity attachmentEntity = child.Value;
 
-                    if (state.EntityManager.HasComponent<AttachmentComponent>(attachmentEntity)) {
-                        var attachment = state.EntityManager.GetComponentData<AttachmentComponent>(attachmentEntity);
+                    if (state.EntityManager.HasComponent<AttachmentData>(attachmentEntity)) {
+                        var attachment = state.EntityManager.GetComponentData<AttachmentData>(attachmentEntity);
 
-                        damage += attachment.damage;
-                        attackSpeed += attachment.attackSpeed;
-                        recoilAmount += attachment.recoilAmount;
-                        spreadAmount += attachment.spreadAmount;
-                        bulletsPerShot += attachment.bulletsPerShot;
+                        damage += attachment.stats.damage;
+                        attackSpeed += attachment.stats.attackSpeed;
+                        recoilAmount += attachment.stats.recoilAmount;
+                        spreadAmount += attachment.stats.spreadAmount;
+                        bulletsPerShot += attachment.stats.bulletsPerShot;
+
+                        piercingBulletsPerShot += attachment.stats.piercingBulletsPerShot;
+                        reloadSpeed += attachment.stats.reloadSpeed;
+                        ammoCapacity += attachment.stats.ammoCapacity;
                     }
                 }
 
-                // Update the weapon's final stats
-                weaponData.ValueRW.damage = damage;
-                weaponData.ValueRW.attackSpeed = attackSpeed;
-                weaponData.ValueRW.recoilAmount = recoilAmount;
-                weaponData.ValueRW.spreadAmount = spreadAmount;
-                weaponData.ValueRW.bulletsPerShot = bulletsPerShot;
+                weaponData.ValueRW.stats.damage = damage;
+                weaponData.ValueRW.stats.attackSpeed = attackSpeed;
+                weaponData.ValueRW.stats.recoilAmount = recoilAmount;
+                weaponData.ValueRW.stats.spreadAmount = spreadAmount;
+                weaponData.ValueRW.stats.bulletsPerShot = bulletsPerShot;
+
+                weaponData.ValueRW.stats.piercingBulletsPerShot = piercingBulletsPerShot;
+                weaponData.ValueRW.stats.reloadSpeed = reloadSpeed;
+                weaponData.ValueRW.stats.ammoCapacity = ammoCapacity;
+                
             }
         }
     }

@@ -15,19 +15,20 @@ MonoBehaviour:
   gunType: 2
   gunName: Gaus-19
   projectileType: 1
-  minAmmoCapacity: 50
-  maxAmmoCapacity: 300
-  minDamage: 2
-  maxDamage: 8
-  minAttackSpeed: 10
-  maxAttackSpeed: 30
-  minRecoilAmount: 1
-  maxRecoilAmount: 3
-  minSpreadAmount: 1
-  maxSpreadAmount: 3
-  minBulletsPerShot: 1
-  maxBulletsPerShot: 3
-  minReloadSpeed: 1
-  maxReloadSpeed: 3
-  minPiercingBulletsPerShot: 1
-  maxPiercingBulletsPerShot: 3
+  statsRangeData:
+    minAmmoCapacity: 50
+    maxAmmoCapacity: 300
+    minDamage: 1
+    maxDamage: 5
+    minAttackSpeed: 15
+    maxAttackSpeed: 45
+    minRecoilAmount: 5
+    maxRecoilAmount: 15
+    minSpreadAmount: 5
+    maxSpreadAmount: 15
+    minBulletsPerShot: 1
+    maxBulletsPerShot: 5
+    minReloadSpeed: 1
+    maxReloadSpeed: 3
+    minPiercingBulletsPerShot: 1
+    maxPiercingBulletsPerShot: 5

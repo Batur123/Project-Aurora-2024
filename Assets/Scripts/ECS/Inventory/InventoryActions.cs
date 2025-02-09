@@ -44,11 +44,6 @@ namespace ECS {
         private GameObject inventoryUI;
         private TMP_Text[] textComponents;
 
-        public Sprite slotImage; // The image for each inventory slot
-        public int slotCount = 20; // Number of slots
-        public Vector2 slotSize = new Vector2(100, 100); // Size of each slot (Width, Height)
-        public float spacing = 10f; // Spacing between slots
-
         public bool isOpened = false;
 
         protected override void OnCreate() {
@@ -65,12 +60,12 @@ namespace ECS {
             }
 
             PlayerSingleton playerSingleton = SystemAPI.GetSingleton<PlayerSingleton>();
-            UIUpdateFlag flag = SystemAPI.GetComponent<UIUpdateFlag>(playerSingleton.PlayerEntity);
-            if (flag.needsUpdate) {
+            
+            if (entityManager.HasComponent<UpdateUserInterfaceTag>(playerSingleton.PlayerEntity)) {
                 SetupUI();
-                SystemAPI.SetComponent(playerSingleton.PlayerEntity, new UIUpdateFlag { needsUpdate = false });
+                entityManager.RemoveComponent<UpdateUserInterfaceTag>(playerSingleton.PlayerEntity);
+                Debug.Log("[State]: User Interface is updated in worker thread");
             }
-
 
             if (Input.GetKeyDown(KeyCode.I)) {
                 if (isOpened) {
@@ -87,49 +82,6 @@ namespace ECS {
                     entityManager.AddComponent<InventoryOpen>(playerSingleton.PlayerEntity);
                 }
             }
-        }
-
-
-        public void MoveAttachmentToInventory(Entity weaponEntity, Entity attachmentEntity, int inventorySlotIndex) {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-
-            // Remove attachment from weapon
-            if (entityManager.HasComponent<Parent>(attachmentEntity)) {
-                ecb.RemoveComponent<Parent>(attachmentEntity);
-            }
-
-            // Update attachment item slot and mark it as not equipped
-            ecb.SetComponent(attachmentEntity, new Item {
-                slot = inventorySlotIndex,
-                isEquipped = false,
-                onGround = false
-            });
-
-            // Add attachment to player's inventory buffer
-            var playerEntity = SystemAPI.GetSingleton<PlayerSingleton>().PlayerEntity;
-            var inventory = entityManager.GetBuffer<Inventory>(playerEntity);
-            inventory.Add(new Inventory { itemEntity = attachmentEntity });
-
-            ecb.Playback(entityManager);
-            ecb.Dispose();
-        }
-
-        public void AddAttachmentToWeapon(Entity weaponEntity, Entity attachmentEntity, SlotType slotType) {
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-
-            // Link the attachment to the weapon
-            ecb.AddComponent(attachmentEntity, new Parent { Value = weaponEntity });
-            ecb.SetComponent(attachmentEntity, new LocalToWorld { Value = float4x4.identity });
-
-            // Mark the attachment as equipped
-            ecb.SetComponent(attachmentEntity, new Item {
-                slot = (int)slotType, // Set slot based on attachment type
-                isEquipped = true,
-                onGround = false
-            });
-
-            ecb.Playback(entityManager);
-            ecb.Dispose();
         }
 
         public void SetupUI() {
@@ -174,31 +126,31 @@ namespace ECS {
             foreach (TMP_Text textComponent in textComponents) {
                 switch (textComponent.name) {
                     case "Stats_HealthRegeneration_Text": {
-                        textComponent.text = characterStats.healthRegeneration.ToString();
+                        textComponent.text = characterStats.characterStats.healthRegeneration.ToString();
                         break;
                     }
                     case "Stats_ArmorRegeneration_Text": {
-                        textComponent.text = characterStats.armorRegeneration.ToString();
+                        textComponent.text = characterStats.characterStats.armorRegeneration.ToString();
                         break;
                     }
                     case "Stats_CriticalHitChance_Text": {
-                        textComponent.text = characterStats.criticalHitChance.ToString();
+                        textComponent.text = characterStats.characterStats.criticalHitChance.ToString();
                         break;
                     }
                     case "Stats_CriticalHitDamage_Text": {
-                        textComponent.text = characterStats.criticalDamage.ToString();
+                        textComponent.text = characterStats.characterStats.criticalDamage.ToString();
                         break;
                     }
                     case "Stats_Luck_Text": {
-                        textComponent.text = characterStats.luck.ToString();
+                        textComponent.text = characterStats.characterStats.luck.ToString();
                         break;
                     }
                     case "Stats_Sanity_Text": {
-                        textComponent.text = characterStats.sanity.ToString();
+                        textComponent.text = characterStats.characterStats.sanity.ToString();
                         break;
                     }
                     case "Stats_LifeSteal_Text": {
-                        textComponent.text = characterStats.lifeSteal.ToString();
+                        textComponent.text = characterStats.characterStats.lifeSteal.ToString();
                         break;
                     }
                 }

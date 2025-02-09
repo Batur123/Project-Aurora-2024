@@ -1,6 +1,4 @@
-﻿using ECS;
-using ECS.Animations;
-using ECS.Components;
+﻿using ECS.Components;
 using Unity.Entities;
 using UnityEngine;
 using Unity.Burst;

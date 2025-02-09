@@ -1,4 +1,4 @@
-﻿using ECS.Animations;
+﻿using ECS.Components;
 using Unity.Entities;
 using UnityEngine;
 

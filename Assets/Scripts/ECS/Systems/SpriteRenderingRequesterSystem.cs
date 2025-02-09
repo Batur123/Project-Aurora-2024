@@ -8,9 +8,8 @@ namespace ECS {
     [UpdateInGroup(typeof(InitializationSystemGroup))] // Runs on the main thread
     public partial struct DisableSpriteRendererSystem : ISystem {
         public void OnUpdate(ref SystemState state) {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
             foreach (var (request, entity) in SystemAPI
-
                          .Query<RefRO<DisableSpriteRendererRequest>>()
                          .WithAll<SpriteRenderer>()
                          .WithEntityAccess()) {

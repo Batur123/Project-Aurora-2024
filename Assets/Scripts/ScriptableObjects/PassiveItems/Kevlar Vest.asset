@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da9adf738a3a46d9a2762d75a6997867, type: 3}
+  m_Name: Kevlar Vest
+  m_EditorClassIdentifier: 
+  passiveItemName: Kevlar Vest
+  passiveItemType: 5
+  projectileType: 0
+  statsData:
+    ammoCapacity: 0
+    damage: 0
+    attackSpeed: 0
+    recoilAmount: 0
+    spreadAmount: 0
+    bulletsPerShot: 0
+    reloadSpeed: 0
+    piercingBulletsPerShot: 0
+  characterStatsData:
+    health: 0
+    maxHealth: 0
+    stamina: 0
+    maxStamina: 0
+    armor: 5
+    maxArmor: 0
+    criticalHitChance: 0
+    criticalDamage: 0
+    luck: 0
+    sanity: 0
+    lifeSteal: 0
+    dodge: 0
+    healthRegeneration: 0
+    armorRegeneration: 0

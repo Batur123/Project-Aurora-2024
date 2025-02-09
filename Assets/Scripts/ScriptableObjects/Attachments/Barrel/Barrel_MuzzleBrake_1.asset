@@ -12,12 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4b992950a2c434b9d54f8161182e451, type: 3}
   m_Name: Barrel_MuzzleBrake_1
   m_EditorClassIdentifier: 
-  attachmentType: 1
-  variantId: 0
-  attachmentSprite: {fileID: 0}
   attachmentName: Muzzle Brake
-  damageModifier: 5
-  reloadSpeedModifier: 6
-  accuracyModifier: 1
-  recoilModifier: 23
-  capacityModifier: 4
+  attachmentType: 1
+  statsRangeData:
+    minAmmoCapacity: 0
+    maxAmmoCapacity: 0
+    minDamage: 1
+    maxDamage: 10
+    minAttackSpeed: 0
+    maxAttackSpeed: 0
+    minRecoilAmount: 1
+    maxRecoilAmount: 5
+    minSpreadAmount: 1
+    maxSpreadAmount: 5
+    minBulletsPerShot: 0
+    maxBulletsPerShot: 0
+    minReloadSpeed: 0
+    maxReloadSpeed: 0
+    minPiercingBulletsPerShot: 0
+    maxPiercingBulletsPerShot: 0

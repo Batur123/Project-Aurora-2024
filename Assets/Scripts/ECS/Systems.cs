@@ -52,10 +52,10 @@ namespace ECS {
             }
 
             PlayerData playerData = SystemAPI.GetComponent<PlayerData>(_cachedPlayerEntity);
-            CharacterStats characterStats = SystemAPI.GetComponent<CharacterStats>(_cachedPlayerEntity);
+            CharacterStats stats = SystemAPI.GetComponent<CharacterStats>(_cachedPlayerEntity);
             DynamicBuffer<EquippedGun> equippedGunBuffer = SystemAPI.GetBuffer<EquippedGun>(_cachedPlayerEntity);
 
-            UIController.Instance.UpdateHealthBar(characterStats.health, characterStats.maxHealth);
+            UIController.Instance.UpdateHealthBar(stats.characterStats.health, stats.characterStats.maxHealth);
             UIController.Instance.SetTextValue(UIController.TextType.SCOREBOARD_TEXT,
                 $"Level: {LevelUtils.CalculateLevelByExperience(playerData.experience)} Exp: {playerData.experience} Kill: {playerData.killCount}");
 
@@ -240,7 +240,7 @@ namespace ECS {
                     return;
                 }
 
-                shootDirection = ApplyRecoil(shootDirection, weaponData.recoilAmount);
+                shootDirection = ApplyRecoil(shootDirection, weaponData.stats.recoilAmount);
 
                 MuzzlePointTransform muzzlePointTransform = state.EntityManager.GetComponentData<MuzzlePointTransform>(equippedGunBuffer[0].GunEntity);
                 LocalTransform weaponLocalTransform = state.EntityManager.GetComponentData<LocalTransform>(equippedGunBuffer[0].GunEntity);
@@ -258,8 +258,8 @@ namespace ECS {
 
                 Vector2 originalDirection = shootDirection; // store once outside the loop
 
-                for (int i = 0; i < weaponData.bulletsPerShot; i++) {
-                    Vector2 randomDir = ApplySpread(originalDirection, weaponData.spreadAmount);
+                for (int i = 0; i < weaponData.stats.bulletsPerShot; i++) {
+                    Vector2 randomDir = ApplySpread(originalDirection, weaponData.stats.spreadAmount);
                     float3 randomizedTarget = new float3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0);
 
                     new SpawnProjectileJob {
@@ -275,7 +275,7 @@ namespace ECS {
                     }.ScheduleParallel();
                 }
 
-                projectileShootingData.ValueRW.nextShootingTime = 1 / weaponData.attackSpeed;
+                projectileShootingData.ValueRW.nextShootingTime = 1 / weaponData.stats.reloadSpeed;
                 SystemAPI.SetComponent(equippedGunBuffer[0].GunEntity, new AmmoComponent {
                     currentAmmo = ammoComponent.currentAmmo - 1,
                     capacity = ammoComponent.capacity
@@ -334,7 +334,7 @@ namespace ECS {
 
                 var distance = Vector3.Distance(enemyTransform.ValueRO.Position, playerLocalTransform.ValueRO.Position);
                 if (distance <= enemyData.ValueRO.meleeAttackRange && attackTimer.ValueRW.TimeElapsed >= enemyData.ValueRO.attackSpeed) {
-                    characterStats.ValueRW.health -= enemyData.ValueRO.damage;
+                    characterStats.ValueRW.characterStats.health -= enemyData.ValueRO.damage;
                     attackTimer.ValueRW.TimeElapsed = 0f;
                 }
 
@@ -371,7 +371,8 @@ namespace ECS {
         }
     }
 
-
+    public struct GamePausedTag : IComponentData {}
+    
     [BurstCompile]
     public partial struct UpdatePlayerStats : ISystem {
         public void OnCreate(ref SystemState state) {
@@ -399,6 +400,31 @@ namespace ECS {
             Interlocked.Add(ref playerData.ValueRW.killCount, killCountRef.Value);
             Interlocked.Add(ref playerData.ValueRW.experience, experienceRef.Value);
 
+            // 2) Accumulate kills/experience
+            playerData.ValueRW.killCount += killCountRef.Value;
+            playerData.ValueRW.experience += experienceRef.Value;
+
+            // 3) Check if we leveled up (maybe multiple times)
+            int currentLevel = playerData.ValueRO.level;
+            int newLevel = LevelUtils.CalculateLevelByExperience(playerData.ValueRO.experience);
+
+            if (newLevel > currentLevel)
+            {
+                // we gained (newLevel - currentLevel) levels at once
+                int gainedLevels = newLevel - currentLevel;
+                playerData.ValueRW.level = newLevel;
+                playerData.ValueRW.pendingLevelUps += gainedLevels;
+
+                Debug.Log($"🎉 Player gained {gainedLevels} levels! Now level {newLevel}");
+
+                // 4) Pause the game if not already paused
+                //    so we can show the level-up UI
+                if (!state.EntityManager.HasComponent<GamePausedTag>(playerSingleton.PlayerEntity))
+                {
+                    ecb.AddComponent<GamePausedTag>(playerSingleton.PlayerEntity);
+                }
+            }
+            
             killCountRef.Dispose();
             experienceRef.Dispose();
             ecb.Playback(state.EntityManager);
