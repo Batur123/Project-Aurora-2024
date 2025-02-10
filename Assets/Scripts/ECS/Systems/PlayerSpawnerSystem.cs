@@ -64,6 +64,7 @@ namespace ECS.Systems {
                     ecb.AddComponent<ReloadTimer>(playerEntity);
                     
                     ecb.AddBuffer<Inventory>(playerEntity);
+                    ecb.AddBuffer<PassiveInventory>(playerEntity);
 
                     Entity singletonEntity = ecb.CreateEntity();
                     ecb.AddComponent(singletonEntity, new PlayerSingleton { PlayerEntity = playerEntity });

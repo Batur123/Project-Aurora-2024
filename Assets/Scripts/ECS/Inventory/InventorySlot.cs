@@ -51,6 +51,24 @@ public class InventorySlot : MonoBehaviour
         }
     }
 
+    public void SetRectTransform() {
+        var rectTransform = CurrentItem.GetComponent<RectTransform>();
+        switch (SlotType) {
+            case SlotType.Attachment: {
+                rectTransform.sizeDelta = new Vector2(113f, 101f);
+                break;
+            }
+            case SlotType.Weapon: {
+                rectTransform.sizeDelta = new Vector2(357f, 146f);
+                break;
+            }
+            default: {
+                rectTransform.sizeDelta = new Vector2(64f, 64f);
+                break;
+            }
+        }
+    }
+
     public void RemoveItem()
     {
         if (CurrentItem != null) {

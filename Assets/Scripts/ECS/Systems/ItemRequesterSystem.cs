@@ -85,6 +85,7 @@ namespace ECS {
                 ecb.AddComponent<PassiveItem>(passiveItemEntity);
                 ecb.SetComponent(passiveItemEntity, new PassiveItem {
                     itemName = request.ValueRO.passiveItemType.ToString(),
+                    passiveItemType = request.ValueRO.passiveItemType,
                     amount = 1,
                 });
 

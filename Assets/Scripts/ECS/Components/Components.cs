@@ -50,6 +50,7 @@ namespace ECS.Components {
     /** [Passive Items] **/
     public struct PassiveItem : IComponentData {
         public FixedString64Bytes itemName;
+        public PassiveItemType passiveItemType;
         public int amount;
     }
 
@@ -395,6 +396,10 @@ namespace ECS.Components {
     }
 
     public struct Inventory : IBufferElementData {
+        public Entity itemEntity;
+    }
+
+    public struct PassiveInventory : IBufferElementData {
         public Entity itemEntity;
     }
     

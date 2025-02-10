@@ -122,6 +122,7 @@ public class UIController : MonoBehaviour {
             if (playerData.pendingLevelUps > 0 && !levelUpPanel.activeSelf) {
                 Debug.Log("Handle Done");
                 HandlePendingLevelUp();
+                //var loot = LootHelper.GetRandomLoot(ref SystemState state);
             }
         }
     }
@@ -287,6 +288,7 @@ public class UIController : MonoBehaviour {
 
         var rectTransform = itemObjectSpawned.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = Vector2.zero;
+        Debug.Log(foundSlotItem.Type + " - " + itemObjectSpawned.name);
         rectTransform.sizeDelta = new Vector2(187.3195f, 176.6627f);
 
         if (_levelUpSlots.TryGetValue(index, out var foundSlotItem2)) {
@@ -320,10 +322,25 @@ public class UIController : MonoBehaviour {
         var image = itemObjectSpawned.GetComponent<Image>();
         image.sprite = itemImage;
         image.preserveAspect = true;
+        Debug.Log(foundSlotItem.Type + " - " + itemObjectSpawned.name);
 
         var rectTransform = itemObjectSpawned.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.sizeDelta = new Vector2(187.3195f, 176.6627f);
+
+        switch (foundSlotItem.Type) {
+            case SlotType.Attachment: {
+                rectTransform.sizeDelta = new Vector2(113f, 101f);
+                break;
+            }
+            case SlotType.Weapon: {
+                rectTransform.sizeDelta = new Vector2(357f, 146f);
+                break;
+            }
+            default: {
+                rectTransform.sizeDelta = new Vector2(64f, 64f);
+                break;
+            }
+        }
 
         AssignItemToSlot(index, itemObjectSpawned.GetComponent<InventoryItem>(), slotType, currentItemType);
     }
@@ -402,6 +419,39 @@ public class UIController : MonoBehaviour {
             ) {
                 Debug.LogWarning($"[Item Swap Warning]: Attempted to swap between {slot1Type} and {slot2Type}. It is not allowed.");
                 return false;
+            }
+
+            // Attachment to Attachment Swap inside of Attachment Slots
+            if (slot1Type == SlotType.Attachment && slot2Type == SlotType.Attachment) {
+                Debug.Log($"[Swap 2]: Start swapping attachments");
+                slot1.AssignItem(item2, slot2ItemType);
+                slot2.AssignItem(item1, slot1ItemType);
+
+                Entity entity1 = FindItemEntityFromIndex(slot1.SlotIndex);
+                Entity entity2 = FindItemEntityFromIndex(slot2.SlotIndex);
+
+                if (entity1 != Entity.Null && entity2 != Entity.Null) {
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+
+                    (itemComp1.slot, itemComp2.slot) = (itemComp2.slot, itemComp1.slot);
+
+                    entityManager.SetComponentData(entity1, itemComp1);
+                    entityManager.SetComponentData(entity2, itemComp2);
+                    return true;
+                }
+
+                if (entity1 != Entity.Null && entity2 == Entity.Null) {
+                    Item itemComp1 = entityManager.GetComponentData<Item>(entity1);
+                    itemComp1.slot = slot2.SlotIndex;
+                    entityManager.SetComponentData(entity1, itemComp1);
+                }
+                
+                if (entity1 == Entity.Null && entity2 != Entity.Null) {
+                    Item itemComp2 = entityManager.GetComponentData<Item>(entity2);
+                    itemComp2.slot = slot1.SlotIndex;
+                    entityManager.SetComponentData(entity1, itemComp2);
+                }
             }
 
             // Item to Item changes between inventory slots are allowed if its not WEAPON or ATTACHMENT special slots.

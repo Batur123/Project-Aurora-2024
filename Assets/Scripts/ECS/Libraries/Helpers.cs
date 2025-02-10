@@ -114,6 +114,53 @@ namespace ECS.Libraries {
             float weighted = Mathf.Pow(random, exponent);
             return Mathf.RoundToInt(Mathf.Lerp(min, max, weighted));
         }
+
+        public static Entity GetRandomPassiveItem(ref SystemState state) {
+            SystemHandle systemHandle = state.World.GetExistingSystem<PassiveItemsLibrarySystem>();
+            PassiveItemsLibrarySystem systemRef = state.World.Unmanaged.GetUnsafeSystemRef<PassiveItemsLibrarySystem>(systemHandle);
+            
+            NativeHashMap<int, Entity> allPassiveItems = systemRef.GetAllDescriptors();
+            NativeHashMap<int, float> lootWeights = new NativeHashMap<int, float>(allPassiveItems.Count, Allocator.Temp);
+            
+            if (allPassiveItems.Count == 0) {
+                lootWeights.Dispose();
+                allPassiveItems.Dispose();
+                return Entity.Null;
+            }
+            
+            float totalWeight = 0f;
+
+            foreach (var weapon in allPassiveItems) {
+                if (!state.EntityManager.HasComponent<GunTypeComponent>(weapon.Value)) {
+                    continue;
+                }
+                
+                GunTypeComponent gunTypeComponent = state.EntityManager.GetComponentData<GunTypeComponent>(weapon.Value);
+                float weight = gunTypeComponent.lootWeight;
+                lootWeights[weapon.Key] = weight;
+                totalWeight += weight;
+            }
+            
+            if (totalWeight <= 0f) {
+                lootWeights.Dispose();
+                allPassiveItems.Dispose();
+                return Entity.Null;
+            }
+
+            float randomPoint = Random.Range(0f, totalWeight);
+            float cumulativeWeight = 0f;
+            Entity selectedEntity = Entity.Null;
+
+            foreach (var loot in lootWeights) {
+                cumulativeWeight += loot.Value;
+                if (randomPoint <= cumulativeWeight) {
+                    selectedEntity = allPassiveItems[loot.Key];
+                    break;
+                }
+            }
+
+            return selectedEntity;
+        }
         
         public static Entity GetRandomLoot(ref SystemState state) {
             // Guns
